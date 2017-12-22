@@ -27,9 +27,6 @@ word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLe
 doc_size, type_size, feature_list, label_list, type_list = utils.load_corpus(train_file)
 
 doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.load_corpus(test_file)
-if dataset == "TACRED":
-    dev_file = './data/intermediate/' + dataset + '/rm/dev.data'
-    doc_size_dev, _, feature_list_dev, label_list_dev, type_list_dev = utils.load_corpus(dev_file)
 
 nocluster = noCluster.noCluster(embLen, word_size, type_size)
 
@@ -50,8 +47,6 @@ best_precision = 0
 best_meanBestF1 = float('-inf')
 packer = pack.repack(0.1, 20, if_cuda)
 fl_t, of_t = packer.repack_eva(feature_list_test)
-if dataset == "TACRED":
-    fl_d, of_d = packer.repack_eva(feature_list_dev)
 
 for epoch in range(200):
     print("epoch: " + str(epoch))
@@ -70,20 +65,10 @@ for epoch in range(200):
         optimizer.step()
     # evaluation mode
     nocluster.eval()
-    if dataset == "TACRED":
-        scores_dev = nocluster(fl_d, of_d)
-        ind_dev = utils.calcInd(scores_dev)
-        entropy_dev = utils.calcEntropy(scores_dev)
-        scores_test = nocluster(fl_t, of_t)
-        ind_test = utils.calcInd(scores_test)
-        entropy_test = utils.calcEntropy(scores_test)
-        f1score, recall, precision, meanBestF1 = utils.eval_score(ind_dev.data, entropy_dev.data, label_list_dev,
-                                                                  ind_test.data, entropy_test.data, label_list_test, none_ind)
-    else:
-        scores = nocluster(fl_t, of_t)
-        ind = utils.calcInd(scores)
-        entropy = utils.calcEntropy(scores)
-        f1score, recall, precision, meanBestF1 = utils.CrossValidation(ind.data, entropy.data, label_list_test, none_ind)
+    scores = nocluster(fl_t, of_t)
+    ind = utils.calcInd(scores)
+    entropy = utils.calcEntropy(scores)
+    f1score, recall, precision, meanBestF1 = utils.CrossValidation(ind.data, entropy.data, label_list_test, none_ind)
 
     print('F1 = %.4f, recall = %.4f, precision = %.4f, val f1 = %.4f)' %
           (f1score,
