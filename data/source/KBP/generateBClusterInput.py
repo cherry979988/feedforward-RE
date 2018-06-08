@@ -10,7 +10,8 @@ f = open('./bc_input.txt', 'w')
 writtenSents = set()
 for line in file.readlines():
     sent = json.loads(line)
-    sentText = unicodedata.normalize('NFKD', sent['sentText']).encode('ascii','ignore').rstrip('\n').rstrip('\r')
+    # sentText = unicodedata.normalize('NFKD', sent['sentText']).encode('ascii','ignore').rstrip('\n').rstrip('\r')
+    sentText = sent['sentText'].rstrip('\n').rstrip('\r')
     if sentText in writtenSents:
         continue
     f.write(sentText)
@@ -21,7 +22,8 @@ file.close()
 file = open('./test.json', 'r')
 for line in file.readlines():
     sent = json.loads(line)
-    sentText = unicodedata.normalize('NFKD', sent['sentText']).encode('ascii','ignore').rstrip('\n').rstrip('\r')
+    # sentText = unicodedata.normalize('NFKD', sent['sentText']).encode('ascii','ignore').rstrip('\n').rstrip('\r')
+    sentText = sent['sentText'].rstrip('\n').rstrip('\r')
     if sentText in writtenSents:
         continue
     f.write(sentText)
