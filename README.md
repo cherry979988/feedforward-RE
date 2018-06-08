@@ -4,7 +4,7 @@ Feedforward NeuralNet for Relation Extraction.
 ### Data Preparation
 
 - Place data in [CoType](https://github.com/shanzhenren/CoType) format obtained in `data/source/$dataname`.
-- Run `./brown_clustering.sh KBP` to generate browncluster file (may take a while, don't repeat if nothing in data changed)
+- Using KBP as the exmaple dataset, run `./brown_clustering.sh KBP` to generate browncluster file (may take a while, don't repeat if nothing in data changed)
 
 ### Feature Extraction
 First, run the server using all jars in the CoreNLP home directory (in another terminal):
