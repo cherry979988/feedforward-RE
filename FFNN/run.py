@@ -37,9 +37,9 @@ nocluster.load_word_embedding(pos_embedding_tensor)
 # optimizer = utils.sgd(nocluster.parameters(), lr=0.025)
 optimizer = optim.SGD(nocluster.parameters(), lr=0.025)
 
-torch.cuda.set_device(0)
-nocluster.cuda()
-if_cuda = True
+# torch.cuda.set_device(0)
+# nocluster.cuda()
+if_cuda = False
 
 best_f1 = float('-inf')
 best_recall = 0
@@ -48,7 +48,7 @@ best_meanBestF1 = float('-inf')
 packer = pack.repack(0.1, 20, if_cuda)
 fl_t, of_t = packer.repack_eva(feature_list_test)
 
-for epoch in range(200):
+for epoch in range(10):
     print("epoch: " + str(epoch))
     nocluster.train()
     sf_tp, sf_fl = utils.shuffle_data(type_list, feature_list)
