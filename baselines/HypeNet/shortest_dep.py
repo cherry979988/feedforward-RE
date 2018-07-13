@@ -3,7 +3,7 @@ from pycorenlp import StanfordCoreNLP
 from pprint import pprint
 import json
 
-FILE = "data/KBP/test"
+FILE = "data/NYT/test"
 
 nlp = StanfordCoreNLP('http://localhost:{0}'.format(9000))
 
@@ -60,7 +60,15 @@ with open(FILE + '.txt', encoding='utf-8') as in_file:
         # Parse the text
         annotations = get_stanford_annotations(document, port=9000,
                                                annotators='tokenize,ssplit,pos,lemma,depparse')
-        annotations = json.loads(annotations, encoding="utf-8", strict=False)
+
+        try:
+            annotations = json.loads(annotations, encoding="utf-8", strict=False)
+        except Exception as e:
+            print('annotation error!')
+            print(line)
+            print(e)
+            continue
+
         tokens = annotations['sentences'][0]['tokens']
         # Load Stanford CoreNLP's dependency tree into a networkx graph
         edges = []

@@ -28,6 +28,13 @@ doc_size, type_size, feature_list, label_list, type_list = utils.load_corpus(tra
 
 doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.load_corpus(test_file)
 
+if dataset == 'TACRED':
+    USE_PROVIDED_DEV = True
+    dev_file = './data/intermediate/' + dataset + '/rm/dev.data'
+    doc_size_dev, _, feature_list_dev, label_list_dev, type_list_dev = utils.load_corpus(dev_file)
+else:
+    USE_PROVIDED_DEV = False
+
 nocluster = noCluster.noCluster(embLen, word_size, type_size)
 
 nocluster.load_word_embedding(pos_embedding_tensor)
@@ -47,6 +54,9 @@ best_precision = 0
 best_meanBestF1 = float('-inf')
 packer = pack.repack(0.1, 20, if_cuda)
 fl_t, of_t = packer.repack_eva(feature_list_test)
+
+if USE_PROVIDED_DEV:
+    fl_d, of_d = packer.repack_eva(feature_list_dev)
 
 for epoch in range(200):
     print("epoch: " + str(epoch))
@@ -68,7 +78,13 @@ for epoch in range(200):
     scores = nocluster(fl_t, of_t)
     ind = utils.calcInd(scores)
     entropy = utils.calcEntropy(scores)
-    f1score, recall, precision, meanBestF1 = utils.CrossValidation(ind.data, entropy.data, label_list_test, none_ind)
+    if USE_PROVIDED_DEV:
+        scores_dev = nocluster(fl_d, of_d)
+        ind_dev = utils.calcInd(scores_dev)
+        entropy_dev = utils.calcEntropy(scores_dev)
+        f1score, recall, precision, meanBestF1 = utils.eval_score(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
+    else:
+        f1score, recall, precision, meanBestF1 = utils.CrossValidation(ind.data, entropy.data, label_list_test, none_ind)
 
     print('F1 = %.4f, recall = %.4f, precision = %.4f, val f1 = %.4f)' %
           (f1score,
