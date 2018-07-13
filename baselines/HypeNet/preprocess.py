@@ -51,6 +51,11 @@ def process(fin1, fin2, fout):
 
 if __name__ == '__main__':
     dataset = 'TACRED'
+    if dataset == 'TACRED':
+        USE_PROVIDED_DEV = True
+    else:
+        USE_PROVIDED_DEV = False
+
     with open("data/" + dataset + "/train_new.json", encoding='utf-8') as train_file, \
             open("data/" + dataset + "/test_new.json", encoding='utf-8') as test_file, \
             open("data/" + dataset + "/relation2id.txt", 'w', encoding='utf-8') as relation_file, \
@@ -59,6 +64,10 @@ if __name__ == '__main__':
         rel_types = {}
         rel_types = process_file(train_file, train_out_file, rel_types, training=True)
         process_file(test_file, test_out_file, rel_types, training=False)
+        if USE_PROVIDED_DEV:
+            with open("data/" + dataset + "/dev_new.json", encoding='utf-8') as dev_file,\
+                    open("data/" + dataset + "/dev_original.txt","w", encoding='utf-8') as dev_out_file:
+                process_file(dev_file, dev_out_file, rel_types, training=False)
         for relation in rel_types:
             relation_file.write(relation + ' ' + str(rel_types[relation]) + '\n')
 
@@ -73,3 +82,13 @@ if __name__ == '__main__':
     fout = open('data/' + dataset + '/test.txt', 'w', encoding='utf-8')
 
     process(fin1, fin2, fout)
+
+    if USE_PROVIDED_DEV:
+        fin1 = open('data/' + dataset + '/dev_original.txt', encoding='utf-8')
+        fin2 = open('data/' + dataset + '/relation2id.txt', encoding='utf-8')
+        fout = open('data/' + dataset + '/dev.txt', 'w', encoding='utf-8')
+        
+        process(fin1, fin2, fout)
+
+
+

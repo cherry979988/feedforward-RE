@@ -22,7 +22,14 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-DATASET = 'KBP'
+DATASET = 'TACRED'
+
+if DATASET == 'TACRED':
+    USE_PROVIDED_DEV = True
+    DEV_JSON_FILE = 'data/' + DATASET + '/dev.json'
+    DEV_LABEL_JSON_FILE = 'data/' + DATASET + '/dev_label.json'
+else:
+    USE_PROVIDED_DEV = False
 
 TEST_MODE = 0
 TRAIN_JSON_FILE = 'data/' + DATASET + '/train.json'
@@ -63,10 +70,19 @@ test_DIR = []
 
 test_labels = []
 
+dev_LEM = []
+dev_POS = []
+dev_DEP = []
+dev_DIR = []
+
+dev_labels = []
+
 train_LeftW = []
 train_RightW = []
 test_LeftW = []
 test_RightW = []
+dev_LeftW = []
+dev_RightW = []
 
 with open(TRAIN_JSON_FILE, encoding='utf-8') as train_file, \
         open(TRAIN_LABEL_JSON_FILE, encoding='utf-8') as train_label_file, \
@@ -94,27 +110,42 @@ for idx, data in enumerate(test_data):
 print('Train numbers: %d' % len(train_data))
 print('Test numbers: %d' % len(test_data))
 
+if USE_PROVIDED_DEV:
+    with open(DEV_JSON_FILE, encoding='utf-8') as dev_file,\
+            open(DEV_LABEL_JSON_FILE, encoding='utf-8') as dev_label_file:
+        dev_data = json.load(dev_file)
+        dev_label_data = json.load(dev_label_file)
+
+    for idx, data in enumerate(dev_data):
+        dev_LEM.append(data[0])
+        dev_POS.append(data[1])
+        dev_DEP.append(data[2])
+        dev_DIR.append(data[3])
+        dev_labels.append(dev_label_data[idx])
+    print('Dev numbers: %d' % len(dev_data))
+
+
 LEM_dic = dict()
 POS_dic = dict()
 DEP_dic = dict()
 DIR_dic = dict()
 
-for LEMlist in train_LEM + test_LEM:
+for LEMlist in train_LEM + test_LEM + dev_LEM:
     for LEM in LEMlist:
         if LEM not in LEM_dic:
             LEM_dic[LEM] = len(LEM_dic)
 
-for POSlist in train_POS + test_POS:
+for POSlist in train_POS + test_POS + dev_POS:
     for POS in POSlist:
         if POS not in POS_dic:
             POS_dic[POS] = len(POS_dic)
 
-for DEPlist in train_DEP + test_DEP:
+for DEPlist in train_DEP + test_DEP + dev_DEP:
     for DEP in DEPlist:
         if DEP not in DEP_dic:
             DEP_dic[DEP] = len(DEP_dic)
 
-for DIRlist in train_DIR + test_DIR:
+for DIRlist in train_DIR + test_DIR + dev_DEP:
     for DIR in DIRlist:
         if DIR not in DIR_dic:
             DIR_dic[DIR] = len(DIR_dic)
@@ -135,6 +166,12 @@ test_DEP_word_sequences = sequence_from_dic(test_DEP, DEP_dic)
 
 train_DIR_word_sequences = sequence_from_dic(train_DIR, DIR_dic)
 test_DIR_word_sequences = sequence_from_dic(test_DIR, DIR_dic)
+
+if USE_PROVIDED_DEV:
+    dev_LEM_word_sequence = sequence_from_dic(dev_LEM, LEM_dic)
+    dev_POS_word_sequence = sequence_from_dic(dev_POS, POS_dic)
+    dev_DEP_word_sequence = sequence_from_dic(dev_DEP, DEP_dic)
+    dev_DIR_word_sequence = sequence_from_dic(dev_DIR, DIR_dic)
 
 print("Processing", GLOVE_FILE)
 
@@ -176,6 +213,15 @@ test_label_data = np.array(test_labels, dtype=int)
 train_label_cat = to_categorical(train_label_data, num_classes=num_classes)
 test_label_cat = to_categorical(test_label_data, num_classes=num_classes)
 
+if USE_PROVIDED_DEV:
+    dev_LEM_data = pad_sequences(dev_LEM_word_sequence, maxlen=MAX_SEQUENCE_LENGTH)
+    dev_POS_data = pad_sequences(dev_POS_word_sequence, maxlen=MAX_SEQUENCE_LENGTH)
+    dev_DEP_data = pad_sequences(dev_DEP_word_sequence, maxlen=MAX_SEQUENCE_LENGTH)
+    dev_DIR_data = pad_sequences(dev_DIR_word_sequence, maxlen=MAX_SEQUENCE_LENGTH)
+
+    dev_label_data = np.array(dev_labels, dtype=int)
+    dev_label_cat = to_categorical(dev_label_data, num_classes=num_classes)
+
 for idx, data in enumerate(train_data):
     train_LeftW.append([LEM_dic[data[0][0]]])
     train_RightW.append([LEM_dic[data[0][-1]]])
@@ -183,6 +229,11 @@ for idx, data in enumerate(train_data):
 for idx, data in enumerate(test_data):
     test_LeftW.append([LEM_dic[data[0][0]]])
     test_RightW.append([LEM_dic[data[0][-1]]])
+
+if USE_PROVIDED_DEV:
+    for idx, data in enumerate(dev_data):
+        dev_LeftW.append([LEM_dic[data[0][0]]])
+        dev_RightW.append([LEM_dic[data[0][-1]]])
 
 # print('Shape of train_leftW data tensor:', train_leftW_data.shape)
 # print('Shape of train_rightPOS data tensor:', train_rightPOS_data.shape)
@@ -231,6 +282,13 @@ model.compile(loss='categorical_crossentropy',
               optimizer=sgd,
               metrics=['accuracy'])
 
+if USE_PROVIDED_DEV:
+    validation_temp = [np.asarray(dev_LeftW), np.asarray(dev_LEM_data), np.asarray(dev_POS_data), \
+            np.asarray(dev_DEP_data), np.asarray(dev_DIR_data), np.asarray(dev_RightW)]
+    validation_data = (validation_temp, dev_label_cat)
+else:
+    validation_data = None
+
 if not TEST_MODE:
     callbacks = [ModelCheckpoint(MODEL_WEIGHTS_FILE, monitor='val_acc', save_best_only=True),
                  EarlyStopping(monitor='val_acc', patience=7)]
@@ -244,6 +302,7 @@ if not TEST_MODE:
         train_label_cat,
         epochs=NB_EPOCHS,
         validation_split=VALIDATION_SPLIT,
+        validation_data=validation_data,
         verbose=1,
         callbacks=callbacks)
     t1 = time.time()
@@ -271,5 +330,5 @@ y_pred = model.predict_classes(
 
 assert len(y_pred) == len(test_label_data)
 precision, recall, f1 = evaluate_rm_neg(y_pred, test_labels, none_id)
-print("P, R, F1:")
+print("\nP, R, F1:")
 print(precision, recall, f1)
