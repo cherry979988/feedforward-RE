@@ -7,6 +7,11 @@ from pprint import pprint
 from zipfile import ZipFile
 
 import numpy as np
+
+SEED = np.random.randint(1,1001)
+print('Using Random Seed: '+str(SEED))
+np.random.seed(SEED)
+
 from keras.utils.np_utils import to_categorical
 from keras import backend as K, optimizers
 from keras.callbacks import ModelCheckpoint, EarlyStopping
