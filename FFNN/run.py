@@ -12,6 +12,10 @@ import model.pack as pack
 
 zip = getattr(itertools, 'izip', zip)
 
+SEED = np.random.randint(1,1001)
+print('Using Random Seed: '+str(SEED))
+torch.manual_seed(SEED)
+
 dataset = sys.argv[1]
 train_file = './data/intermediate/' + dataset + '/rm/train.data'
 test_file = './data/intermediate/' + dataset + '/rm/test.data'
