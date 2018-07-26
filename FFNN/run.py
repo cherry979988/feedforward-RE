@@ -88,7 +88,7 @@ for epoch in range(200):
         entropy_dev = utils.calcEntropy(scores_dev)
         f1score, recall, precision, meanBestF1 = utils.eval_score(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
     else:
-        f1score, recall, precision, meanBestF1 = utils.CrossValidation(ind.data, entropy.data, label_list_test, none_ind)
+        f1score, recall, precision, meanBestF1 = utils.noCrossValidation(ind.data, entropy.data, label_list_test, none_ind)
 
     print('F1 = %.4f, recall = %.4f, precision = %.4f, val f1 = %.4f)' %
           (f1score,

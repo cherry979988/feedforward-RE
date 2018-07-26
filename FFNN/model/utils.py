@@ -301,3 +301,31 @@ def eval_score(pre_ind_dev, pre_entropy_dev, true_ind_dev, pre_ind_test, pre_ent
     precision += (1.0 * corrected / (predicted + 0.00001))
 
     return f1score, recall, precision, meanBestF1
+
+def noCrossValidation(pre_ind, pre_entropy, tru_ind, noneInd):
+    # direct evaluation on test-set, no threshold tuning!
+    # designed to figure out the diff. between FFNN and CoType
+    f1score = 0.0
+    recall = 0.0
+    precision = 0.0
+    data = [[pre_ind[ind], pre_entropy[ind], true_ind[ind]] for ind in range(0, len(pre_ind))]
+
+    max_ent = max(val, key=lambda t: t[1])[1]
+    threshold = max_ent
+
+    ofInterest = 0
+    for ins in data:
+        if ins[2][0] != noneInd:
+            ofInterest += 1
+    corrected = 0
+    predicted = 0
+    for ins in data:
+        if ins[0] != noneInd:
+            predicted += 1
+            if ins[0] == ins[2][0]:
+                corrected += 1
+    f1score = (2.0 * corrected / (ofInterest + predicted))
+    recall = (1.0 * corrected / ofInterest)
+    precision = (1.0 * corrected / (predicted + 1e-8))
+
+    return f1score, recall, precision, f1score
