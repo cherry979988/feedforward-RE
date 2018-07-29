@@ -71,35 +71,34 @@ if __name__ == "__main__":
             fout.write(str(len(lines)) + '\n')
             fout.write(''.join(lines))
 
-        if 'TACRED' in infile:
-            print('Transforming dev set...')
-            with open(os.path.join(infile, 'dev/test_x.txt'), 'r') as x_in, \
-                    open(os.path.join(infile, 'dev/test_y.txt'), 'r') as y_in, \
-                    open(os.path.join(outfile, 'dev.txt'), 'w') as fout:
-                count = 0
-                insmap = {}
-                for line in x_in:
-                    line = line.split('\t')
+        print('Transforming dev set...')
+        with open(os.path.join(infile, 'dev_x.txt'), 'r') as x_in, \
+                open(os.path.join(infile, 'dev_y.txt'), 'r') as y_in, \
+                open(os.path.join(outfile, 'dev.txt'), 'w') as fout:
+            count = 0
+            insmap = {}
+            for line in x_in:
+                line = line.split('\t')
+                feature = list(map(lambda t: int(t), line[1].split(',')))
+                tmp = count
+                insmap[count] = [0,
+                                 str(tmp) + '\t' + str(len(feature)) + '\t' + ' '.join(map(lambda t: str(t), feature))]
+                count += 1
+            count = 0
+            for line in y_in:
+                line = line.split('\t')
+                if len(line[1]) > 1:
                     feature = list(map(lambda t: int(t), line[1].split(',')))
-                    tmp = count
-                    insmap[count] = [0,
-                                     str(tmp) + '\t' + str(len(feature)) + '\t' + ' '.join(map(lambda t: str(t), feature))]
-                    count += 1
-                count = 0
-                for line in y_in:
-                    line = line.split('\t')
-                    if len(line[1]) > 1:
-                        feature = list(map(lambda t: int(t), line[1].split(',')))
-                        insmap[count] = [1, insmap[count][1] + '\t' + str(len(feature)) + '\t' + ' '.join(
-                            map(lambda t: str(t), feature))]
-                    count += 1
-                for (k, v) in insmap.items():
-                    if v[0] == 1:
-                        fout.write(v[1] + '\n')
-            with open(os.path.join(outfile, 'dev.txt'), 'r') as fin, open(os.path.join(outfile, 'dev.data'), 'w') as fout:
-                lines = fin.readlines()
-                fout.write(str(len(lines)) + '\n')
-                fout.write(''.join(lines))        
+                    insmap[count] = [1, insmap[count][1] + '\t' + str(len(feature)) + '\t' + ' '.join(
+                        map(lambda t: str(t), feature))]
+                count += 1
+            for (k, v) in insmap.items():
+                if v[0] == 1:
+                    fout.write(v[1] + '\n')
+        with open(os.path.join(outfile, 'dev.txt'), 'r') as fin, open(os.path.join(outfile, 'dev.data'), 'w') as fout:
+            lines = fin.readlines()
+            fout.write(str(len(lines)) + '\n')
+            fout.write(''.join(lines))
 
         # copy qa and feature files from original folder
         # shutil.copy(os.path.join(infile, 'feature.txt'), outfile)

@@ -2,6 +2,7 @@ __author__ = 'ZeqiuWu'
 import sys
 import os
 import math
+import shutil
 from multiprocessing import Process, Lock
 from nlp_parse import parse
 from ner_feature import pipeline, filter, pipeline_test
@@ -12,6 +13,11 @@ def get_number(filename):
         for line in f:
             count += 1
         return count
+
+def move_dev_files(dir):
+    shutil.move(dir+'/dev/test_x.txt',dir+'/dev_x.txt')
+    shutil.move(dir+'/dev/test_y.txt',dir+'/dev_y.txt')
+    shutil.move(dir+'/dev/type_test.txt',dir+'type_dev.txt')
 
 def multi_process_parse(fin, fout, isTrain, nOfNones):
     file = open(fin, 'r')
@@ -72,3 +78,4 @@ if __name__ == "__main__":
     filter(outdir+'/feature.map', outdir+'/train_x.txt', outdir+'/feature.txt', outdir+'/train_x_new.txt')
     pipeline_test(test_json, indir + '/brown', outdir+'/feature.txt',outdir+'/type.txt', outdir, requireEmType=requireEmType, isEntityMention=False)
     pipeline_test(dev_json, indir + '/brown', outdir+'/feature.txt',outdir+'/type.txt',outdir+'/dev', requireEmType=requireEmType, isEntityMention=False)
+    move_dev_files(outdir)
