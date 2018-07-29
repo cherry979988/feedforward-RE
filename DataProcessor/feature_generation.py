@@ -51,31 +51,24 @@ if __name__ == "__main__":
     numOfNones = int(sys.argv[5])
     # NLP parse
 
-    raw_train_json = indir + '/train.json'
+    raw_train_json = indir + '/train_split.json'
     raw_test_json = indir + '/test.json'
     train_json = outdir + '/train_new.json'
     test_json = outdir + '/test_new.json'
+    raw_dev_json = indir + '/dev.json'
+    dev_json = outdir + '/dev_new.json'
 
     ### Generate features using Python wrapper (disabled if using run_nlp.sh)
     print 'Start nlp parsing'
     multi_process_parse(raw_train_json, train_json, True, numOfNones)
-
     print 'Train set parsing done'
+    multi_process_parse(raw_dev_json, dev_json, False, 1)
+    print 'Dev set parsing done'
     multi_process_parse(raw_test_json, test_json, False, 1)
     print 'Test set parsing done'
 
-    if sys.argv[1]=='TACRED':
-        raw_dev_json = indir + '/dev.json'
-        dev_json = outdir + '/dev_new.json'
-        multi_process_parse(raw_dev_json, dev_json, False, 1)
-        print 'Dev set parsing done'
-
     print 'Start rm feature extraction'
-
     pipeline(train_json, indir + '/brown', outdir, requireEmType=requireEmType, isEntityMention=False)
     filter(outdir+'/feature.map', outdir+'/train_x.txt', outdir+'/feature.txt', outdir+'/train_x_new.txt')
-
     pipeline_test(test_json, indir + '/brown', outdir+'/feature.txt',outdir+'/type.txt', outdir, requireEmType=requireEmType, isEntityMention=False)
-    if sys.argv[1]=='TACRED':
-        pipeline_test(dev_json, indir + '/brown', outdir+'/feature.txt',outdir+'/type.txt',outdir+'/dev', requireEmType=requireEmType, isEntityMention=False)
- 
+    pipeline_test(dev_json, indir + '/brown', outdir+'/feature.txt',outdir+'/type.txt',outdir+'/dev', requireEmType=requireEmType, isEntityMention=False)

@@ -254,10 +254,17 @@ def CrossValidation(pre_ind, pre_entropy, true_ind, noneInd, ratio=0.1, cvnum=10
 
 
 def eval_score(pre_ind_dev, pre_entropy_dev, true_ind_dev, pre_ind_test, pre_entropy_test, true_ind_test, noneInd):
-    f1score = 0.0
-    recall = 0.0
-    precision = 0.0
-    meanBestF1 = 0.0
+    '''
+    :param pre_ind_dev:
+    :param pre_entropy_dev:
+    :param true_ind_dev:
+    :param pre_ind_test:
+    :param pre_entropy_test:
+    :param true_ind_test:
+    :param noneInd:
+    :param ratio: only a ratio of input dev will be used to tune threshold
+    :return: test_f1, test_precision, test_recall, dev_f1
+    '''
 
     val = [[pre_ind_dev[ind], pre_entropy_dev[ind], true_ind_dev[ind]] for ind in range(0, len(pre_ind_dev))]
     eva = [[pre_ind_test[ind], pre_entropy_test[ind], true_ind_test[ind]] for ind in range(0, len(pre_ind_test))]
@@ -285,7 +292,9 @@ def eval_score(pre_ind_dev, pre_entropy_dev, true_ind_dev, pre_ind_test, pre_ent
         if curF1 > bestF1:
             bestF1 = curF1
             bestThreshold = threshold
-    meanBestF1 += bestF1
+
+    # tuning complete, evaluate on test set
+    meanBestF1 = bestF1
     ofInterest = 0
     corrected = 0
     predicted = 0
@@ -296,13 +305,13 @@ def eval_score(pre_ind_dev, pre_entropy_dev, true_ind_dev, pre_ind_test, pre_ent
             predicted += 1
             if ins[0] == ins[2][0]:
                 corrected += 1
-    f1score += (2.0 * corrected / (ofInterest + predicted))
-    recall += (1.0 * corrected / ofInterest)
-    precision += (1.0 * corrected / (predicted + 0.00001))
+    f1score = (2.0 * corrected / (ofInterest + predicted))
+    recall = (1.0 * corrected / ofInterest)
+    precision = (1.0 * corrected / (predicted + 0.00001))
 
     return f1score, recall, precision, meanBestF1
 
-def noCrossValidation(pre_ind, pre_entropy, tru_ind, noneInd):
+def noCrossValidation(pre_ind, pre_entropy, true_ind, noneInd):
     # direct evaluation on test-set, no threshold tuning!
     # designed to figure out the diff. between FFNN and CoType
     f1score = 0.0
@@ -310,7 +319,7 @@ def noCrossValidation(pre_ind, pre_entropy, tru_ind, noneInd):
     precision = 0.0
     data = [[pre_ind[ind], pre_entropy[ind], true_ind[ind]] for ind in range(0, len(pre_ind))]
 
-    max_ent = max(val, key=lambda t: t[1])[1]
+    max_ent = max(data, key=lambda t: t[1])[1]
     threshold = max_ent
 
     ofInterest = 0

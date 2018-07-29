@@ -3,8 +3,8 @@
 Data=$1
 echo $Data
 
-mkdir -pv data/intermediate/$Data/em
-mkdir -pv data/intermediate/$Data/rm
+mkdir -pv data/intermediate/$Data/em/dev
+mkdir -pv data/intermediate/$Data/rm/dev
 mkdir -pv data/results/$Data/em
 mkdir -pv data/results/$Data/rm
 

@@ -3,6 +3,9 @@
 Data=$1
 echo $Data
 
+### Split Original Train Data into 90% Train and 10% Dev
+python2 DataProcessor/dev_set_partition.py $Data 0.1
+
 ### Generate brown file (clusters raw.txt into 300 clusters)
 cd data/source/$Data
 python3 generateBClusterInput.py
