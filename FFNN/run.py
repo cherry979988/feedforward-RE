@@ -43,7 +43,8 @@ nocluster.load_word_embedding(pos_embedding_tensor)
 # nocluster.load_neg_embedding(neg_embedding_tensor)
 
 # optimizer = utils.sgd(nocluster.parameters(), lr=0.025)
-optimizer = optim.SGD(nocluster.parameters(), lr=0.025)
+optimizer = optim.SGD(nocluster.parameters(), lr=0.1)
+scheduler = optim.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=20)
 
 torch.cuda.set_device(0)
 nocluster.cuda()
@@ -73,6 +74,7 @@ for epoch in range(200):
         loss.backward()
         nn.utils.clip_grad_norm(nocluster.parameters(), 5)
         optimizer.step()
+        scheduler.step(loss)
     # evaluation mode
     nocluster.eval()
     scores = nocluster(fl_t, of_t)
