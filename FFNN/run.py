@@ -16,6 +16,10 @@ SEED = np.random.randint(1,1001)
 print('Using Random Seed: '+str(SEED))
 torch.manual_seed(SEED)
 
+if len(sys.argv) != 4:
+    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -negW')
+    exit(1)
+
 dataset = sys.argv[1]
 train_file = './data/intermediate/' + dataset + '/rm/train.data'
 dev_file = './data/intermediate/' + dataset + '/rm/dev.data'
@@ -28,6 +32,10 @@ print("None id:", none_ind)
 bat_size = 20
 embLen = 50
 
+# tunable prams
+drop_prob = float(sys.argv[2])
+repack_ratio = float(sys.argv[3])
+
 word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 
 doc_size, type_size, feature_list, label_list, type_list = utils.load_corpus(train_file)
@@ -36,7 +44,7 @@ doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.loa
 
 doc_size_dev, _, feature_list_dev, label_list_dev, type_list_dev = utils.load_corpus(dev_file)
 
-nocluster = noCluster.noCluster(embLen, word_size, type_size)
+nocluster = noCluster.noCluster(embLen, word_size, type_size, drop_prob)
 
 nocluster.load_word_embedding(pos_embedding_tensor)
 
@@ -54,7 +62,7 @@ best_f1 = float('-inf')
 best_recall = 0
 best_precision = 0
 best_meanBestF1 = float('-inf')
-packer = pack.repack(0.1, 20, if_cuda)
+packer = pack.repack(repack_ratio, 20, if_cuda)
 
 fl_t, of_t = packer.repack_eva(feature_list_test)
 fl_d, of_d = packer.repack_eva(feature_list_dev)
