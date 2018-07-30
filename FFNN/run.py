@@ -52,9 +52,9 @@ nocluster.load_word_embedding(pos_embedding_tensor)
 
 # optimizer = utils.sgd(nocluster.parameters(), lr=0.025)
 optimizer = optim.SGD(nocluster.parameters(), lr=0.1)
-scheduler = optim.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=20)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=20)
 
-torch.cuda.set_device(0)
+torch.cuda.set_device(3)
 nocluster.cuda()
 if_cuda = True
 
@@ -82,7 +82,6 @@ for epoch in range(200):
         loss.backward()
         nn.utils.clip_grad_norm(nocluster.parameters(), 5)
         optimizer.step()
-        scheduler.step(loss)
     # evaluation mode
     nocluster.eval()
     scores = nocluster(fl_t, of_t)
@@ -94,6 +93,7 @@ for epoch in range(200):
     entropy_dev = utils.calcEntropy(scores_dev)
 
     f1score, recall, precision, meanBestF1 = utils.eval_score(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
+    scheduler.step(meanBestF1)
 
     print('F1 = %.4f, recall = %.4f, precision = %.4f, val f1 = %.4f)' %
           (f1score,
