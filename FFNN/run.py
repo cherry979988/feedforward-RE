@@ -16,8 +16,8 @@ SEED = np.random.randint(1,1001)
 print('Using Random Seed: '+str(SEED))
 torch.manual_seed(SEED)
 
-if len(sys.argv) != 4:
-    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -negW')
+if len(sys.argv) != 5:
+    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20)')
     exit(1)
 
 dataset = sys.argv[1]
@@ -29,12 +29,12 @@ feature_file = './data/intermediate/' + dataset + '/rm/feature.txt'
 type_file = './data/intermediate/' + dataset + '/rm/type.txt'
 none_ind = utils.get_none_id(type_file)
 print("None id:", none_ind)
-bat_size = 20
 embLen = 50
 
 # tunable prams
 drop_prob = float(sys.argv[2])
 repack_ratio = float(sys.argv[3])
+bat_size = int(sys.argv[4])
 
 word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 
@@ -52,9 +52,9 @@ nocluster.load_word_embedding(pos_embedding_tensor)
 
 # optimizer = utils.sgd(nocluster.parameters(), lr=0.025)
 optimizer = optim.SGD(nocluster.parameters(), lr=0.1)
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=20)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10)
 
-torch.cuda.set_device(3)
+torch.cuda.set_device(0)
 nocluster.cuda()
 if_cuda = True
 
