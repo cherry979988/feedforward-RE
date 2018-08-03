@@ -12,13 +12,15 @@ import model.pack as pack
 
 zip = getattr(itertools, 'izip', zip)
 
-SEED = np.random.randint(1,1001)
+if len(sys.argv) != 6:
+    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -randomseed(1234)')
+    exit(1)
+
+SEED = int(sys.argv[5])
 print('Using Random Seed: '+str(SEED))
 torch.manual_seed(SEED)
-
-if len(sys.argv) != 5:
-    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20)')
-    exit(1)
+np.random.seed(SEED)
+random.seed(SEED)
 
 dataset = sys.argv[1]
 train_file = './data/intermediate/' + dataset + '/rm/train.data'
