@@ -114,3 +114,5 @@ print('F1 = %.4f, recall = %.4f, precision = %.4f, val f1 = %.4f)' %
        best_recall,
        best_precision,
        best_meanBestF1))
+
+utils.save_tune_log(dataset, drop_prob, repack_ratio, bat_size, best_f1, best_recall, best_precision, best_meanBestF1)
