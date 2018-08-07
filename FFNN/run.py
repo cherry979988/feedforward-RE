@@ -94,7 +94,8 @@ for epoch in range(200):
     ind_dev = utils.calcInd(scores_dev)
     entropy_dev = utils.calcEntropy(scores_dev)
 
-    f1score, recall, precision, meanBestF1 = utils.eval_score(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
+    f1score, recall, precision, meanBestF1 = utils.noCrossValidation(ind.data, entropy.data, label_list_test, none_ind)
+    # f1score, recall, precision, meanBestF1 = utils.eval_score(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
     scheduler.step(meanBestF1)
 
     print('F1 = %.4f, recall = %.4f, precision = %.4f, val f1 = %.4f)' %
