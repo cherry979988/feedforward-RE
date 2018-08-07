@@ -7,6 +7,8 @@ from shutil import copyfile
 # split the original train set into
 # 90% train-set (train_split.json) and 10% dev-set (dev.json)
 if __name__ == "__main__":
+    random.seed(1234)
+    
     if len(sys.argv) != 3:
         print 'Usage:feature_generation.py -DATA -ratio'
         exit(1)
