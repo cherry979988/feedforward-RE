@@ -6,6 +6,7 @@ import itertools
 import numpy as np
 import random
 import time
+import os
 
 zip = getattr(itertools, 'izip', zip)
 
@@ -312,13 +313,16 @@ def eval_score(pre_ind_dev, pre_entropy_dev, true_ind_dev, pre_ind_test, pre_ent
 
     return f1score, recall, precision, meanBestF1
 
-def noCrossValidation(pre_ind, pre_entropy, true_ind, noneInd):
+def noCrossValidation(pre_ind_dev, pre_entropy_dev, true_ind_dev, pre_ind_test, pre_entropy_test, true_ind_test, noneInd):
     # direct evaluation on test-set, no threshold tuning!
     # designed to figure out the diff. between FFNN and CoType
+    # val_f1 is on dev set, p/r/f1 is on test set
+
+    # dev set
     f1score = 0.0
     recall = 0.0
     precision = 0.0
-    data = [[pre_ind[ind], pre_entropy[ind], true_ind[ind]] for ind in range(0, len(pre_ind))]
+    data = [[pre_ind_dev[ind], pre_entropy_dev[ind], true_ind_dev[ind]] for ind in range(0, len(pre_ind_dev))]
 
     max_ent = max(data, key=lambda t: t[1])[1]
     threshold = max_ent
@@ -337,8 +341,27 @@ def noCrossValidation(pre_ind, pre_entropy, true_ind, noneInd):
     f1score = (2.0 * corrected / (ofInterest + predicted))
     recall = (1.0 * corrected / ofInterest)
     precision = (1.0 * corrected / (predicted + 1e-8))
+    val_f1 = f1score
 
-    return f1score, recall, precision, f1score
+    # test set
+    data = [[pre_ind_test[ind], pre_entropy_test[ind], true_ind_test[ind]] for ind in range(0, len(pre_ind_test))]
+
+    ofInterest = 0
+    for ins in data:
+        if ins[2][0] != noneInd:
+            ofInterest += 1
+    corrected = 0
+    predicted = 0
+    for ins in data:
+        if ins[0] != noneInd:
+            predicted += 1
+            if ins[0] == ins[2][0]:
+                corrected += 1
+    f1score = (2.0 * corrected / (ofInterest + predicted))
+    recall = (1.0 * corrected / ofInterest)
+    precision = (1.0 * corrected / (predicted + 1e-8))
+
+    return f1score, recall, precision, val_f1
 
 def save_tune_log(dataset, drop_prob, repack_ratio, bat_size, f1, recall, precision, val_f1):
     if os.path.isfile('tune_log.pkl'):
