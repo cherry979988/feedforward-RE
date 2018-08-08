@@ -375,8 +375,8 @@ def save_tune_log(dataset, drop_prob, repack_ratio, bat_size, f1, recall, precis
         pickle.dump(d, f, pickle.HIGHEST_PROTOCOL)
 
     f = open('tune_full_log.txt', 'a+')
-    f.write("Dataset: %s Drop_prob: %s Repack_ratio: %s Bat_size: %s" % (dataset, drop_prob, repack_ratio, bat_size))
-    f.write("F1: %s Recall %s Precision %s Val_f1 %s" % (f1, recall, precision, val_f1))
+    f.write("Dataset: %s Drop_prob: %s Repack_ratio: %s Bat_size: %s\n" % (dataset, drop_prob, repack_ratio, bat_size))
+    f.write("F1: %s Recall %s Precision %s Val_f1 %s\n" % (f1, recall, precision, val_f1))
     f.write("Time stamp: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-    f.write("===")
+    f.write("\n===\n")
 
