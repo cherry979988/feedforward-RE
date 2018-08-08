@@ -8,7 +8,7 @@ import random
 import sys
 import model.utils as utils
 import model.noCluster as noCluster
-import model.noClusterWMax as noClusterWMax
+import model.noCluster_Mean_n_Max as noCluster_Mean_n_Max
 import model.pack as pack
 
 zip = getattr(itertools, 'izip', zip)
@@ -47,7 +47,7 @@ doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.loa
 
 doc_size_dev, _, feature_list_dev, label_list_dev, type_list_dev = utils.load_corpus(dev_file)
 
-nocluster = noClusterWMax.noCluster_Mean_n_Max(embLen, word_size, type_size, drop_prob)
+nocluster = noCluster_Mean_n_Max.noCluster_Mean_n_Max(embLen, word_size, type_size, drop_prob)
 
 nocluster.load_word_embedding(pos_embedding_tensor)
 
