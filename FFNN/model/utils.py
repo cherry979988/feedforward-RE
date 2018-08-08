@@ -111,7 +111,7 @@ def load_corpus(corpus):
         type_vec[label] = 1
         type_vec = type_vec.view(1, -1)
         type_list.append(type_vec)
-    return size, type_size, feature_list, label_list, type_list
+    return size, type_size, feature_list, label_list.cuda(), type_list
 
 
 def load_qa_corpus(corpus):
