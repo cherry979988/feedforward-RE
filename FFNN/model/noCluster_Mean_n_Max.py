@@ -17,7 +17,7 @@ class noCluster_Mean_n_Max(nn.Module):
         self.word_size = word_size
 
         self.word_emb = nn.Embedding(word_size, emblen)
-        self.word_emb_bag = EmbeddingBag_Mean_n_Max.EmbeddingBag_self(word_size, emblen)
+        self.word_emb_bag = EmbeddingBag_Mean_n_Max.EmbeddingBag_Mean_n_Max(word_size, emblen)
         #self.word_emb_bag = nn.EmbeddingBag(word_size, emblen)
         self.word_embedding = self.word_emb.weight
         self.word_emb_bag.weight = self.word_embedding

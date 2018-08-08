@@ -39,13 +39,15 @@ drop_prob = float(sys.argv[2])
 repack_ratio = float(sys.argv[3])
 bat_size = int(sys.argv[4])
 
+if_cuda = True
+
 word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 
-doc_size, type_size, feature_list, label_list, type_list = utils.load_corpus(train_file)
+doc_size, type_size, feature_list, label_list, type_list = utils.load_corpus(train_file, if_cuda)
 
-doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.load_corpus(test_file)
+doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.load_corpus(test_file, if_cuda)
 
-doc_size_dev, _, feature_list_dev, label_list_dev, type_list_dev = utils.load_corpus(dev_file)
+doc_size_dev, _, feature_list_dev, label_list_dev, type_list_dev = utils.load_corpus(dev_file, if_cuda)
 
 nocluster = noCluster_Mean_n_Max.noCluster_Mean_n_Max(embLen, word_size, type_size, drop_prob)
 
@@ -59,7 +61,6 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0
 
 torch.cuda.set_device(0)
 nocluster.cuda()
-if_cuda = True
 
 best_f1 = float('-inf')
 best_recall = 0
