@@ -7,6 +7,7 @@ import numpy as np
 import random
 import time
 import os
+import pickle
 
 zip = getattr(itertools, 'izip', zip)
 
