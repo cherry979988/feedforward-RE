@@ -53,7 +53,7 @@ tune_time_seed = 1234
 
 for output_dropout in output_dropout_list:
     cmd1 = 'CUDA_VISIBLE_DEVICES=%s python3 FFNN/run.py %s %s %s %s %d'\
-        % (devices, dataset, output_dropout, defualt_input_dropout, default_bsize, tune_time_seed)
+        % (devices, dataset, output_dropout, default_input_dropout, default_bsize, tune_time_seed)
     print(cmd1)
     subprocess.call(cmd1,shell=True)
 
