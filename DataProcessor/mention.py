@@ -98,6 +98,13 @@ class Sentence(object):
         assert isinstance(entityMention, EntityMention)
         self.entityMentions.append(entityMention)
 
+    def get_em_text(self, emStart, emEnd):
+        em_text = '_'.join(self.tokens[emStart:emEnd])
+        # for entityMention in self.entityMentions:
+        #     if ' '.join(self.tokens[entityMention.start:entityMention.end]) == em_text:
+        #         return entityMention.labels
+        return em_text
+
     def size(self):
         return min(len(self.tokens),len(self.pos))
 

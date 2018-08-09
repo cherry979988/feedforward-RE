@@ -119,7 +119,11 @@ def pipeline(json_file, brown_file, outdir, requireEmType, isEntityMention):
                 if isEntityMention:
                     m_id = '%s_%s_%d_%d'%(sentence.articleId, sentence.sentId, mention.start, mention.end)
                 else:
-                    m_id = '%s_%d_%d_%d_%d_%d'%(sentence.articleId, sentence.sentId, mention.em1Start, mention.em1End, mention.em2Start, mention.em2End)
+                    #m_id = '%s_%d_%d_%d_%d_%d'%(sentence.articleId, sentence.sentId, mention.em1Start, mention.em1End, mention.em2Start, mention.em2End)
+                    label1 = sentence.get_em_text(mention.em1Start, mention.em1End)
+                    label2 = sentence.get_em_text(mention.em2Start, mention.em2End)
+                    # assert label1 != None and label2 != None
+                    m_id = '%s_%s'%(label1, label2)
                 feature_ids, label_ids = ner_feature.extract(sentence, mention)
                 if len(label_ids) not in mentionCountByNumOfLabels:
                     mentionCountByNumOfLabels[len(label_ids)] = 1
@@ -189,8 +193,11 @@ def pipeline_qa(json_file, brown_file, featurefile, labelfile, outdir, requireEm
                 if isEntityMention:
                     m_id = '%s_%d_%d'%(sentence.sentId, mention.start, mention.end)
                 else:
-                    m_id = '%d_%d_%d_%d_%d'%(sentence.sentId, mention.em1Start, mention.em1End, mention.em2Start, mention.em2End)
-
+                    # m_id = '%d_%d_%d_%d_%d'%(sentence.sentId, mention.em1Start, mention.em1End, mention.em2Start, mention.em2End)
+                    label1 = sentence.get_em_text(mention.em1Start, mention.em1End)
+                    label2 = sentence.get_em_text(mention.em2Start, mention.em2End)
+                    assert label1 != None and label2 != None
+                    m_id = '%s_%s'%(label1, label2)
 
                 feature_ids, label_ids = ner_feature.extract(sentence, mention)
                 gx.write(m_id+'\t'+','.join([str(x) for x in feature_ids])+'\n')
@@ -238,7 +245,11 @@ def pipeline_test(json_file, brown_file, featurefile, labelfile, outdir, require
                 if isEntityMention:
                     m_id = '%s_%s_%d_%d'%(sentence.articleId, sentence.sentId, mention.start, mention.end)
                 else:
-                    m_id = '%s_%d_%d_%d_%d_%d'%(sentence.articleId, sentence.sentId, mention.em1Start, mention.em1End, mention.em2Start, mention.em2End)
+                    #m_id = '%s_%d_%d_%d_%d_%d'%(sentence.articleId, sentence.sentId, mention.em1Start, mention.em1End, mention.em2Start, mention.em2End)
+                    label1 = sentence.get_em_text(mention.em1Start, mention.em1End)
+                    label2 = sentence.get_em_text(mention.em2Start, mention.em2End)
+                    # assert label1 != None and label2 != None
+                    m_id = '%s_%s' % (label1, label2)
                 #print mention.em1Start, mention.em1End, mention.em2Start, mention.em2End
                 feature_ids, label_ids = ner_feature.extract(sentence, mention)
                 gx.write(m_id+'\t'+','.join([str(x) for x in feature_ids])+'\n')

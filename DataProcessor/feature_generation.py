@@ -37,6 +37,52 @@ def multi_process_parse(fin, fout, isTrain, nOfNones):
         proc.join()
     out_file.close()
 
+def corpus_level_merge_feature(filein, fileout):
+    d = dict()
+    fin = open(filein, 'r')
+    lines = fin.readlines()
+    print(len(lines))
+    for line in lines:
+        line = line.strip('\n').split('\t')
+        id = line[0]
+        features = line[1]
+        if id not in d:
+            d[id] = features
+        else:
+            d[id] = d[id] + ',' + features
+    keys = sorted(d.keys())
+    # print(keys[:100])
+    fout = open(fileout, 'w')
+    for key in keys:
+        fout.write(key+'\t'+d[key]+'\n')
+        # fout.write(d[key])
+    fout.close()
+
+def corpus_level_merge_label(filein, fileout):
+    d = dict()
+    fin = open(filein, 'r')
+    lines = fin.readlines()
+    for line in lines:
+        line = line.strip('\n').split('\t')
+        if line[0] not in d:
+            d[line[0]] = line[1]
+    keys = sorted(d.keys())
+
+
+    fout = open(fileout, 'w')
+    for key in keys:
+        fout.write(key+'\t'+d[key]+'\n')
+    fout.close()
+
+def corpus_level_merge():
+    datalist = ['train','dev','test']
+    for item in datalist:
+        if item == 'train': # _new means after filter
+            corpus_level_merge_feature(outdir + '/%s_x_new.txt' % item, outdir + '/%s_x_corpus.txt' % item)
+        else:
+            corpus_level_merge_feature(outdir+'/%s_x.txt'%item, outdir+'/%s_x_corpus.txt'%item)
+        corpus_level_merge_label(outdir+'/%s_y.txt'%item, outdir+'/%s_y_corpus.txt'%item)
+
 if __name__ == "__main__":
     if len(sys.argv) != 6:
         print 'Usage:feature_generation.py -DATA -numOfProcesses -emtypeFlag(0 or 1) -negWeight (1.0) -nOfNones (1)'
@@ -65,17 +111,19 @@ if __name__ == "__main__":
     dev_json = outdir + '/dev_new.json'
 
     ### Generate features using Python wrapper (disabled if using run_nlp.sh)
-    print 'Start nlp parsing'
-    multi_process_parse(raw_train_json, train_json, True, numOfNones)
-    print 'Train set parsing done'
-    multi_process_parse(raw_dev_json, dev_json, False, 1)
-    print 'Dev set parsing done'
-    multi_process_parse(raw_test_json, test_json, False, 1)
-    print 'Test set parsing done'
+    #print 'Start nlp parsing'
+    #multi_process_parse(raw_train_json, train_json, True, numOfNones)
+    #print 'Train set parsing done'
+    #multi_process_parse(raw_dev_json, dev_json, False, 1)
+    #print 'Dev set parsing done'
+    #multi_process_parse(raw_test_json, test_json, False, 1)
+    #print 'Test set parsing done'
 
-    print 'Start rm feature extraction'
-    pipeline(train_json, indir + '/brown', outdir, requireEmType=requireEmType, isEntityMention=False)
-    filter(outdir+'/feature.map', outdir+'/train_x.txt', outdir+'/feature.txt', outdir+'/train_x_new.txt')
-    pipeline_test(test_json, indir + '/brown', outdir+'/feature.txt',outdir+'/type.txt', outdir, requireEmType=requireEmType, isEntityMention=False)
-    pipeline_test(dev_json, indir + '/brown', outdir+'/feature.txt',outdir+'/type.txt',outdir+'/dev', requireEmType=requireEmType, isEntityMention=False)
-    move_dev_files(outdir)
+    #print 'Start rm feature extraction'
+    #pipeline(train_json, indir + '/brown', outdir, requireEmType=requireEmType, isEntityMention=False)
+    #filter(outdir+'/feature.map', outdir+'/train_x.txt', outdir+'/feature.txt', outdir+'/train_x_new.txt')
+    #pipeline_test(test_json, indir + '/brown', outdir+'/feature.txt',outdir+'/type.txt', outdir, requireEmType=requireEmType, isEntityMention=False)
+    #pipeline_test(dev_json, indir + '/brown', outdir+'/feature.txt',outdir+'/type.txt',outdir+'/dev', requireEmType=requireEmType, isEntityMention=False)
+    #move_dev_files(outdir)
+
+    corpus_level_merge()
