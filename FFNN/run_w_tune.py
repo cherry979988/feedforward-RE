@@ -17,7 +17,7 @@ if len(sys.argv) < 7:
     exit(1)
 
 TYPE = sys.argv[5]
-if TYPE!='max' or TYPE!='entropy':
+if TYPE!='max' and TYPE!='entropy':
     print('Type must be max or entropy')
     exit(1)
 
