@@ -182,6 +182,9 @@ def calcInd(batch_probs):
     _, ind = torch.max(batch_probs, 1)
     return ind
 
+def calcMaxProb(batch_probs):
+    prob, _ = torch.max(batch_probs, 1)
+    return prob
 
 def dropout(input_tensor, ratio):
     keep_vec = torch.ge(torch.rand(input_tensor.size()), ratio)
@@ -394,6 +397,7 @@ def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, 
     ndev_f1 = f1score
 
     # tune threshold (domain adaption).
+    # can either be max thres or entropy thres; works in the same way.
     f1score = 0.0
     recall = 0.0
     precision = 0.0
@@ -477,7 +481,7 @@ def save_tune_log_cv(dataset, drop_prob, repack_ratio, bat_size, f1, recall, pre
 
     f = open('tune_full_log.txt', 'a+')
     f.write("Dataset: %s Drop_prob: %s Repack_ratio: %s Bat_size: %s\n" % (dataset, drop_prob, repack_ratio, bat_size))
-    f.write("F1: %s Recall: %s Precision: %s " % (f1, recall, precision, cdev_f1))
+    f.write("F1: %s Recall: %s Precision: %s Cdev_f1: %s" % (f1, recall, precision, cdev_f1))
     if ndev_f1 != None:
         f.write(" Ndev_f1: %s\n") % (ndev_f1)
     else:

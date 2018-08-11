@@ -12,11 +12,16 @@ import model.pack as pack
 
 zip = getattr(itertools, 'izip', zip)
 
-if len(sys.argv) < 6:
-    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -randomseed(1234) -info')
+if len(sys.argv) < 7:
+    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -type(max/entropy) -randomseed(1234) -info')
     exit(1)
 
-SEED = int(sys.argv[5])
+TYPE = sys.argv[5]
+if TYPE!='max' or TYPE!='entropy':
+    print('Type must be max or entropy')
+    exit(1)
+
+SEED = int(sys.argv[6])
 print('Using Random Seed: '+str(SEED))
 torch.manual_seed(SEED)
 np.random.seed(SEED)
@@ -43,7 +48,7 @@ if len(sys.argv) >= 6:
 else:
     info = 'default tune thres run'
 
-if_cuda = True
+if_cuda = False
 
 word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 
@@ -63,8 +68,8 @@ nocluster.load_word_embedding(pos_embedding_tensor)
 optimizer = optim.SGD(nocluster.parameters(), lr=0.1)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10)
 
-torch.cuda.set_device(0)
-nocluster.cuda()
+#torch.cuda.set_device(0)
+#nocluster.cuda()
 
 best_f1 = float('-inf')
 best_recall = 0
@@ -96,12 +101,18 @@ for epoch in range(200):
     scores = nocluster(fl_t, of_t)
     ind = utils.calcInd(scores)
     entropy = utils.calcEntropy(scores)
+    maxprob = utils.calcMaxProb(scores)
 
     scores_dev = nocluster(fl_d, of_d)
     ind_dev = utils.calcInd(scores_dev)
     entropy_dev = utils.calcEntropy(scores_dev)
+    maxprob_dev = utils.calcMaxProb(scores_dev)
 
-    ndevF1, f1score, recall, precision, meanBestF1 = utils.CrossValidation_New(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
+    ndevF1, f1score, recall, precision, meanBestF1 = (0,0,0,0,0)
+    if TYPE == 'entropy':
+        ndevF1, f1score, recall, precision, meanBestF1 = utils.CrossValidation_New(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
+    else:
+        ndevF1, f1score, recall, precision, meanBestF1 = utils.CrossValidation_New(ind_dev.data, maxprob_dev.data, label_list_dev, ind.data, maxprob.data, label_list_test, none_ind)
     # f1score, recall, precision, meanBestF1 = utils.eval_score(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
     scheduler.step(ndevF1)
 

@@ -2,11 +2,12 @@ data=$1
 devices=$2
 dropout=$3
 repack=$4
+runtype=$5
 
 for i in 1 2 3 4 5
 do
     echo "Run #$i"
-    CUDA_VISIBLE_DEVICES=$devices python3 FFNN/run_w_tune.py $data 0.2 0.1 80
+    CUDA_VISIBLE_DEVICES=$devices python3 FFNN/run_w_tune.py $data 0.2 0.1 80 $runtype $i
 done
 
 echo "testing for $data finished!"
