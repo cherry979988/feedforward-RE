@@ -103,10 +103,10 @@ def load_corpus(corpus, if_cuda=True):
         tmp = max(label_vec)
         if type_size < tmp:
             type_size = tmp
-        if if_cuda:
-            label_list.append(torch.cuda.LongTensor(label_vec))
-        else:
-            label_list.append(torch.LongTensor(label_vec))
+        #if if_cuda:
+        #    label_list.append(torch.cuda.LongTensor(label_vec))
+        #else:
+        label_list.append(torch.LongTensor(label_vec))
     type_size = type_size + 1
     type_list = list()
     for label in label_list:
