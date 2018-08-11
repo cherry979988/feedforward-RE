@@ -367,6 +367,88 @@ def noCrossValidation(pre_ind_dev, pre_entropy_dev, true_ind_dev, pre_ind_test, 
 
     return f1score, recall, precision, val_f1
 
+def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, pre_entropy, true_ind, noneInd, ratio=0.1, cvnum=100):
+    # calculate the f1 without threshold on ndev set
+    f1score = 0.0
+    recall = 0.0
+    precision = 0.0
+    data = [[pre_ind_ndev[ind], pre_entropy_ndev[ind], true_ind_ndev[ind]] for ind in range(0, len(pre_ind_ndev))]
+
+    max_ent = max(data, key=lambda t: t[1])[1]
+    threshold = max_ent
+
+    ofInterest = 0
+    for ins in data:
+        if ins[2][0] != noneInd:
+            ofInterest += 1
+    corrected = 0
+    predicted = 0
+    for ins in data:
+        if ins[0] != noneInd:
+            predicted += 1
+            if ins[0] == ins[2][0]:
+                corrected += 1
+    f1score = (2.0 * corrected / (ofInterest + predicted))
+    recall = (1.0 * corrected / ofInterest)
+    precision = (1.0 * corrected / (predicted + 1e-8))
+    ndev_f1 = f1score
+
+    # tune threshold (domain adaption).
+    f1score = 0.0
+    recall = 0.0
+    precision = 0.0
+    meanBestF1 = 0.0
+    valSize = int(np.floor(ratio * len(pre_ind)))
+    data = [[pre_ind[ind], pre_entropy[ind], true_ind[ind]] for ind in range(0, len(pre_ind))]
+    for cvind in range(cvnum):
+        random.shuffle(data)
+        val = data[0:valSize]
+        eva = data[valSize:]
+
+        # find best threshold
+        max_ent = max(val, key=lambda t: t[1])[1]
+        min_ent = min(val, key=lambda t: t[1])[1]
+        stepSize = (max_ent - min_ent) / 100
+        thresholdList = [min_ent + ind * stepSize for ind in range(0, 100)]
+        ofInterest = 0
+        for ins in val:
+            if ins[2][0] != noneInd:
+                ofInterest += 1
+        bestThreshold = float('nan')
+        bestF1 = float('-inf')
+        for threshold in thresholdList:
+            corrected = 0
+            predicted = 0
+            for ins in val:
+                if ins[1] < threshold and ins[0] != noneInd:
+                    predicted += 1
+                    if ins[0] == ins[2][0]:
+                        corrected += 1
+            curF1 = 2.0 * corrected / (ofInterest + predicted)
+            if curF1 > bestF1:
+                bestF1 = curF1
+                bestThreshold = threshold
+        meanBestF1 += bestF1
+        ofInterest = 0
+        corrected = 0
+        predicted = 0
+        for ins in eva:
+            if ins[2][0] != noneInd:
+                ofInterest += 1
+            if ins[1] < bestThreshold and ins[0] != noneInd:
+                predicted += 1
+                if ins[0] == ins[2][0]:
+                    corrected += 1
+        f1score += (2.0 * corrected / (ofInterest + predicted))
+        recall += (1.0 * corrected / ofInterest)
+        precision += (1.0 * corrected / (predicted + 0.00001))
+
+    meanBestF1 /= cvnum
+    f1score /= cvnum
+    recall /= cvnum
+    precision /= cvnum
+    return ndev_f1, f1score, recall, precision, meanBestF1
+    
 def save_tune_log(dataset, drop_prob, repack_ratio, bat_size, f1, recall, precision, val_f1):
     if os.path.isfile('tune_log.pkl'):
         with open('tune_log.pkl', 'rb') as f:
@@ -380,6 +462,28 @@ def save_tune_log(dataset, drop_prob, repack_ratio, bat_size, f1, recall, precis
     f = open('tune_full_log.txt', 'a+')
     f.write("Dataset: %s Drop_prob: %s Repack_ratio: %s Bat_size: %s\n" % (dataset, drop_prob, repack_ratio, bat_size))
     f.write("F1: %s Recall %s Precision %s Val_f1 %s\n" % (f1, recall, precision, val_f1))
+    f.write("Time stamp: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+    f.write("\n===\n")
+
+def save_tune_log_cv(dataset, drop_prob, repack_ratio, bat_size, f1, recall, precision, cdev_f1, ndev_f1=None, info=None):
+    if os.path.isfile('tune_log.pkl'):
+        with open('tune_log.pkl', 'rb') as f:
+            d = pickle.load(f)
+    else:
+        d = dict()
+    d[(dataset, drop_prob, repack_ratio, bat_size)] = ndev_f1
+    with open('tune_log.pkl', 'wb') as f:
+        pickle.dump(d, f, pickle.HIGHEST_PROTOCOL)
+
+    f = open('tune_full_log.txt', 'a+')
+    f.write("Dataset: %s Drop_prob: %s Repack_ratio: %s Bat_size: %s\n" % (dataset, drop_prob, repack_ratio, bat_size))
+    f.write("F1: %s Recall: %s Precision: %s " % (f1, recall, precision, cdev_f1))
+    if ndev_f1 != None:
+        f.write(" Ndev_f1: %s\n") % (ndev_f1)
+    else:
+        f.write("\n")
+    if info != None:
+        f.write("Info: " + info)
     f.write("Time stamp: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     f.write("\n===\n")
 
