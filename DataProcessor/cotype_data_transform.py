@@ -16,8 +16,8 @@ if __name__ == "__main__":
 
     for (infile, outfile) in zip(args.input, args.output):
         print(infile)
-        with open(os.path.join(infile, 'train_x_new.txt'), 'r') as x_in, \
-                open(os.path.join(infile, 'train_y.txt'), 'r') as y_in, \
+        with open(os.path.join(infile, 'train_x_corpus.txt'), 'r') as x_in, \
+                open(os.path.join(infile, 'train_y_corpus.txt'), 'r') as y_in, \
                 open(os.path.join(outfile, 'train.txt'), 'w') as fout:
             insmap = {}
             count = 0
@@ -37,8 +37,8 @@ if __name__ == "__main__":
             for (k, v) in insmap.items():
                 fout.write(v + '\n')
 
-        with open(os.path.join(infile, 'test_x.txt'), 'r') as x_in, \
-                open(os.path.join(infile, 'test_y.txt'), 'r') as y_in, \
+        with open(os.path.join(infile, 'test_x_corpus.txt'), 'r') as x_in, \
+                open(os.path.join(infile, 'test_y_corpus.txt'), 'r') as y_in, \
                 open(os.path.join(outfile, 'test.txt'), 'w') as fout:
             count = 0
             insmap = {}
@@ -72,8 +72,8 @@ if __name__ == "__main__":
             fout.write(''.join(lines))
 
         print('Transforming dev set...')
-        with open(os.path.join(infile, 'dev_x.txt'), 'r') as x_in, \
-                open(os.path.join(infile, 'dev_y.txt'), 'r') as y_in, \
+        with open(os.path.join(infile, 'dev_x_corpus.txt'), 'r') as x_in, \
+                open(os.path.join(infile, 'dev_y_corpus.txt'), 'r') as y_in, \
                 open(os.path.join(outfile, 'dev.txt'), 'w') as fout:
             count = 0
             insmap = {}

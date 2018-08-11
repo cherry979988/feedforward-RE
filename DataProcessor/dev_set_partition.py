@@ -21,7 +21,7 @@ if __name__ == "__main__":
     train_json = dir + '/train_split.json'
     dev_json = dir + '/dev.json'
 
-    if dataset == 'TACRED':
+    if dataset == 'TACRED' or dataset == 'NYT10':
         print '%s has a provided dev set, skip splitting' % dataset
         copyfile(original_train_json, train_json)
         exit(0)
