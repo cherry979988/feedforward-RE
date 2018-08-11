@@ -48,7 +48,7 @@ if len(sys.argv) >= 6:
 else:
     info = 'default tune thres run'
 
-if_cuda = False
+if_cuda = True
 
 word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 
@@ -68,8 +68,8 @@ nocluster.load_word_embedding(pos_embedding_tensor)
 optimizer = optim.SGD(nocluster.parameters(), lr=0.1)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10)
 
-#torch.cuda.set_device(0)
-#nocluster.cuda()
+torch.cuda.set_device(0)
+nocluster.cuda()
 
 best_f1 = float('-inf')
 best_recall = 0
