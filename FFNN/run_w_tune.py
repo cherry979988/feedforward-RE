@@ -42,16 +42,10 @@ if len(sys.argv) >= 6:
     info = ' '.join(sys.argv[6:])
 else:
     info = 'default tune thres run'
-    
-word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 
-nocluster = noCluster.noCluster(embLen, word_size, type_size, drop_prob)
-
-nocluster.load_word_embedding(pos_embedding_tensor)
-
-torch.cuda.set_device(0)
-nocluster.cuda()
 if_cuda = True
+
+word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 
 doc_size, type_size, feature_list, label_list, type_list = utils.load_corpus(train_file, if_cuda)
 
@@ -59,11 +53,18 @@ doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.loa
 
 doc_size_dev, _, feature_list_dev, label_list_dev, type_list_dev = utils.load_corpus(dev_file, if_cuda)
 
+nocluster = noCluster.noCluster(embLen, word_size, type_size, drop_prob)
+
+nocluster.load_word_embedding(pos_embedding_tensor)
+
 # nocluster.load_neg_embedding(neg_embedding_tensor)
 
 # optimizer = utils.sgd(nocluster.parameters(), lr=0.025)
 optimizer = optim.SGD(nocluster.parameters(), lr=0.1)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10)
+
+torch.cuda.set_device(0)
+nocluster.cuda()
 
 best_f1 = float('-inf')
 best_recall = 0
