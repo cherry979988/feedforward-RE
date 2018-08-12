@@ -424,7 +424,7 @@ def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, 
             corrected = 0
             predicted = 0
             for ins in val:
-                if ins[1] < threshold and ins[0] != noneInd:
+                if ins[1] > threshold and ins[0] != noneInd:
                     predicted += 1
                     if ins[0] == ins[2][0]:
                         corrected += 1
@@ -439,7 +439,7 @@ def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, 
         for ins in eva:
             if ins[2][0] != noneInd:
                 ofInterest += 1
-            if ins[1] < bestThreshold and ins[0] != noneInd:
+            if ins[1] > bestThreshold and ins[0] != noneInd:
                 predicted += 1
                 if ins[0] == ins[2][0]:
                     corrected += 1
