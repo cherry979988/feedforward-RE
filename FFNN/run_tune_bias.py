@@ -51,7 +51,7 @@ nocluster.load_state_dict(torch.load('ffnn_dump.pth'))
 nocluster.freeze_params()
 
 # optimizer = utils.sgd(nocluster.parameters(), lr=0.025)
-optimizer = optim.SGD(nocluster.parameters(), lr=0.1)
+optimizer = optim.SGD(filter(lambda p: p.requires_grad, nocluster.parameters()), lr=0.1)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10)
 
 torch.cuda.set_device(0)
@@ -75,6 +75,7 @@ test_feature_list = shuffle_feature_list[clean_dev_size:]
 test_label_list = shuffle_label_list[clean_dev_size:]
 
 fl_t, of_t = packer.repack_eva(test_feature_list)
+fl_cd, of_cd = packer.repack_eva(cdev_feature_list)
 
 for epoch in range(200):
     print("epoch: " + str(epoch))
@@ -98,15 +99,15 @@ for epoch in range(200):
     ind = utils.calcInd(scores)
     entropy = utils.calcEntropy(scores)
 
-    # scores_dev = nocluster(fl_d, of_d)
-    # ind_dev = utils.calcInd(scores_dev)
-    # entropy_dev = utils.calcEntropy(scores_dev)
+    scores_cdev = nocluster(fl_cd, of_cd)
+    ind_cdev = utils.calcInd(scores_cdev)
+    entropy_cdev = utils.calcEntropy(scores_cdev)
 
-    f1score, recall, precision, meanBestF1 = utils.noCrossValidation(ind.data, entropy.data, test_label_list, ind.data, entropy.data, test_label_list, none_ind)
+    f1score, recall, precision, meanBestF1 = utils.noCrossValidation(ind_cdev.data, entropy_cdev.data, cdev_label_list, ind.data, entropy.data, test_label_list, none_ind)
     # f1score, recall, precision, meanBestF1 = utils.eval_score(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
     scheduler.step(meanBestF1)
 
-    print('F1 = %.4f, recall = %.4f, precision = %.4f, val f1 = %.4f)' %
+    print('F1 = %.4f, recall = %.4f, precision = %.4f, cdev f1 = %.4f)' %
           (f1score,
            recall,
            precision,
@@ -118,7 +119,7 @@ for epoch in range(200):
         best_meanBestF1 = meanBestF1
 
 print('Best result: ')
-print('F1 = %.4f, recall = %.4f, precision = %.4f, val f1 = %.4f)' %
+print('F1 = %.4f, recall = %.4f, precision = %.4f, cdev f1 = %.4f)' %
       (best_f1,
        best_recall,
        best_precision,
