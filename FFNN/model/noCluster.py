@@ -63,9 +63,12 @@ class noCluster(nn.Module):
         self.linear.weight = weight_original
 
         #freeze params
-        self.linear.weight.requires_grad = False
-        self.word_emb.weight.requires_grad = False
-        self.word_emb_bag.weight.requires_grad = False
+        for params in self.parameters():
+            params.requires_grad = False
+        self.linear.bias.require_grad = True
+        # self.linear.weight.requires_grad = False
+        # self.word_emb.weight.requires_grad = False
+        # self.word_emb_bag.weight.requires_grad = False
 
 
 
