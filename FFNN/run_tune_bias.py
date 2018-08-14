@@ -53,8 +53,8 @@ nocluster.freeze_params()
 # optimizer = utils.sgd(nocluster.parameters(), lr=0.025)
 optimizer = optim.SGD(filter(lambda p: p.requires_grad, nocluster.parameters()), lr=0.1)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10)
-f = filter(lambda p: p.requires_grad, nocluster.parameters()
-for item in f:
+f = filter(lambda p: p.requires_grad, nocluster.parameters())
+for item in list(f):
     print(item)
 
 torch.cuda.set_device(0)
