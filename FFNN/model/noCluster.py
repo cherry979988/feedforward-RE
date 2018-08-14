@@ -14,6 +14,7 @@ class noCluster(nn.Module):
         super(noCluster, self).__init__()
         self.emblen = emblen
         self.word_size = word_size
+        self.type_size = type_size
 
         self.word_emb = nn.Embedding(word_size, emblen)
         self.word_emb_bag = nn.EmbeddingBag(word_size, emblen)
@@ -40,6 +41,9 @@ class noCluster(nn.Module):
     def load_neg_embedding(self, pre_embeddings):
         self.neg_word.load_neg_embedding(pre_embeddings)
 
+    def load_linear_weights(self, linear_weights):
+        self.linear.weight = nn.Parameter(linear_weights)
+
     def NLL_loss(self, typeTensor, resampleFeature1, resampleFeature2, feaDrop, offsetDrop, neg_sample):
         scores = self(feaDrop, offsetDrop)
         # batch_size = scores.size(0)
@@ -51,3 +55,18 @@ class noCluster(nn.Module):
     def forward(self, feature_seq, offset_seq):
         men_embedding = self.word_emb_bag(feature_seq, offset_seq)
         return self.linear(F.dropout(men_embedding, p=self.drop_prob, training=self.training))
+
+    def freeze_params(self):
+        # add bias to linear layer
+        weight_original = self.linear.weight
+        self.linear = nn.Linear(self.emblen, self.type_size, bias=True)
+        self.linear.weight = weight_original
+
+        #freeze params
+        self.linear.weight.requires_grad = False
+        self.word_emb.weight.requires_grad = False
+        self.word_emb_bag.weight.requires_grad = False
+
+
+
+

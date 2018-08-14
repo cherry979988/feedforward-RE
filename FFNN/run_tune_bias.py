@@ -40,17 +40,15 @@ bat_size = int(sys.argv[4])
 
 word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 
-doc_size, type_size, feature_list, label_list, type_list = utils.load_corpus(train_file)
+doc_size, type_size, feature_list, label_list, type_list = utils.load_corpus(test_file)
 
-doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.load_corpus(test_file)
+# doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.load_corpus(test_file)
 
-doc_size_dev, _, feature_list_dev, label_list_dev, type_list_dev = utils.load_corpus(dev_file)
+# doc_size_dev, _, feature_list_dev, label_list_dev, type_list_dev = utils.load_corpus(dev_file)
 
 nocluster = noCluster.noCluster(embLen, word_size, type_size, drop_prob)
-
-nocluster.load_word_embedding(pos_embedding_tensor)
-
-# nocluster.load_neg_embedding(neg_embedding_tensor)
+nocluster.load_state_dict(torch.load('ffnn_dump.pth'))
+nocluster.freeze_params()
 
 # optimizer = utils.sgd(nocluster.parameters(), lr=0.025)
 optimizer = optim.SGD(nocluster.parameters(), lr=0.1)
@@ -66,13 +64,22 @@ best_precision = 0
 best_meanBestF1 = float('-inf')
 packer = pack.repack(repack_ratio, 20, if_cuda)
 
-fl_t, of_t = packer.repack_eva(feature_list_test)
-fl_d, of_d = packer.repack_eva(feature_list_dev)
+shuffle_type_list, shuffle_feature_list, shuffle_label_list = utils.shuffle_data_with_type(type_list, feature_list, label_list)
+clean_dev_size = int(0.1 * len(shuffle_type_list))
+
+cdev_type_list = shuffle_type_list[:clean_dev_size]
+cdev_feature_list = shuffle_feature_list[:clean_dev_size]
+cdev_label_list = shuffle_label_list[:clean_dev_size]
+test_type_list = shuffle_type_list[clean_dev_size:]
+test_feature_list = shuffle_feature_list[clean_dev_size:]
+test_label_list = shuffle_label_list[clean_dev_size:]
+
+fl_t, of_t = packer.repack_eva(test_feature_list)
 
 for epoch in range(200):
     print("epoch: " + str(epoch))
     nocluster.train()
-    sf_tp, sf_fl = utils.shuffle_data(type_list, feature_list)
+    sf_tp, sf_fl = utils.shuffle_data(cdev_type_list, cdev_feature_list)
     for b_ind in range(0, len(sf_tp), bat_size):
         nocluster.zero_grad()
         if b_ind + bat_size > len(sf_tp):
@@ -84,17 +91,18 @@ for epoch in range(200):
         loss.backward()
         nn.utils.clip_grad_norm(nocluster.parameters(), 5)
         optimizer.step()
+
     # evaluation mode
     nocluster.eval()
     scores = nocluster(fl_t, of_t)
     ind = utils.calcInd(scores)
     entropy = utils.calcEntropy(scores)
 
-    scores_dev = nocluster(fl_d, of_d)
-    ind_dev = utils.calcInd(scores_dev)
-    entropy_dev = utils.calcEntropy(scores_dev)
+    # scores_dev = nocluster(fl_d, of_d)
+    # ind_dev = utils.calcInd(scores_dev)
+    # entropy_dev = utils.calcEntropy(scores_dev)
 
-    f1score, recall, precision, meanBestF1 = utils.noCrossValidation(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
+    f1score, recall, precision, meanBestF1 = utils.noCrossValidation(ind.data, entropy.data, test_label_list, ind.data, entropy.data, test_label_list, none_ind)
     # f1score, recall, precision, meanBestF1 = utils.eval_score(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
     scheduler.step(meanBestF1)
 
@@ -115,7 +123,5 @@ print('F1 = %.4f, recall = %.4f, precision = %.4f, val f1 = %.4f)' %
        best_recall,
        best_precision,
        best_meanBestF1))
-
-torch.save(nocluster.state_dict(), 'ffnn_dump.pth')
 
 utils.save_tune_log(dataset, drop_prob, repack_ratio, bat_size, best_f1, best_recall, best_precision, best_meanBestF1)

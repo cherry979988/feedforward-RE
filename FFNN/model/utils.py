@@ -168,6 +168,14 @@ def shuffle_data(ori_labels, ori_corpus):
     corpus = [ori_corpus[i] for i in index_shuf]
     return labels, corpus
 
+def shuffle_data_with_type(ori_labels, ori_corpus, ori_types):
+    assert (len(ori_labels) == len(ori_corpus) and len(ori_labels) == len(ori_types))
+    index_shuf = list(range(len(ori_labels)))
+    random.shuffle(index_shuf)
+    labels = [ori_labels[i] for i in index_shuf]
+    corpus = [ori_corpus[i] for i in index_shuf]
+    types = [ori_types[i] for i in index_shuf]
+    return labels, corpus, types
 
 def calcEntropy(batch_scores):
     # input: B * L
