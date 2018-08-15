@@ -108,7 +108,7 @@ for epoch in range(200):
         best_recall = recall
         best_precision = precision
         best_meanBestF1 = meanBestF1
-        torch.save(nocluster.state_dict(), 'ffnn_dump.pth')
+        torch.save(nocluster.state_dict(), './dumped_models/ffnn_dump_'+str(dataset)+'.pth')
 
 print('Best result: ')
 print('F1 = %.4f, recall = %.4f, precision = %.4f, val f1 = %.4f)' %

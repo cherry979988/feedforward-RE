@@ -52,7 +52,7 @@ cdev_f1_mean = 0
 
 for i in range(100):
     nocluster = noCluster.noCluster(embLen, word_size, type_size, drop_prob)
-    nocluster.load_state_dict(torch.load('ffnn_dump.pth'))
+    nocluster.load_state_dict(torch.load('./dumped_models/ffnn_dump_'+str(dataset)+'.pth'))
     nocluster.freeze_params()
 
     # optimizer = utils.sgd(nocluster.parameters(), lr=0.025)
