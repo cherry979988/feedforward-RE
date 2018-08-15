@@ -56,7 +56,7 @@ for i in range(100):
     nocluster.freeze_params()
 
     # optimizer = utils.sgd(nocluster.parameters(), lr=0.025)
-    optimizer = optim.SGD(filter(lambda p: p.requires_grad, nocluster.parameters()), lr=0.1)
+    optimizer = optim.SGD(filter(lambda p: p.requires_grad, nocluster.parameters()), lr=0.05)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10)
     # f = filter(lambda p: p.requires_grad, nocluster.parameters())
     # for item in list(f):
@@ -86,7 +86,7 @@ for i in range(100):
     fl_cd, of_cd = packer.repack_eva(cdev_feature_list)
 
     for epoch in range(200):
-        print("epoch: " + str(epoch))
+        #print("epoch: " + str(epoch))
         nocluster.train()
         sf_tp, sf_fl = utils.shuffle_data(cdev_type_list, cdev_feature_list)
         for b_ind in range(0, len(sf_tp), bat_size):
@@ -126,12 +126,12 @@ for i in range(100):
             best_precision = precision
             best_meanBestF1 = meanBestF1
 
-    print('Validation #%d Best Result: ' % i)
-    print('F1 = %.4f, recall = %.4f, precision = %.4f, cdev f1 = %.4f)' %
-          (best_f1,
-           best_recall,
-           best_precision,
-           best_meanBestF1))
+    # print('Validation #%d Best Result: ' % i)
+    # print('F1 = %.4f, recall = %.4f, precision = %.4f, cdev f1 = %.4f)' %
+    #      (best_f1,
+    #       best_recall,
+    #       best_precision,
+    #       best_meanBestF1))
     f1_mean += best_f1
     precision_mean += best_precision
     recall_mean += best_recall
