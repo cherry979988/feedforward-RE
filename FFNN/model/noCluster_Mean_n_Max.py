@@ -26,7 +26,7 @@ class noCluster_Mean_n_Max(nn.Module):
         self.linear = nn.Linear(2*emblen, type_size, bias=False)
         self.linear.weight.data.zero_()
 
-        self.neg_word = nce.NCE_loss(word_size, 2*emblen)
+        # self.neg_word = nce.NCE_loss(word_size, 2*emblen)
 
         self.crit = obj.partCE(if_average=if_average)
         self.drop_prob = drop_prob
@@ -40,8 +40,8 @@ class noCluster_Mean_n_Max(nn.Module):
         self.word_emb.weight = self.word_embedding
         self.word_emb_bag.weight = self.word_embedding
 
-    def load_neg_embedding(self, pre_embeddings):
-        self.neg_word.load_neg_embedding(pre_embeddings)
+    # def load_neg_embedding(self, pre_embeddings):
+        # self.neg_word.load_neg_embedding(pre_embeddings)
 
     def NLL_loss(self, typeTensor, resampleFeature1, resampleFeature2, feaDrop, offsetDrop, neg_sample):
         scores = self(feaDrop, offsetDrop)

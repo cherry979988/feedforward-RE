@@ -47,6 +47,7 @@ doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.loa
 doc_size_dev, _, feature_list_dev, label_list_dev, type_list_dev = utils.load_corpus(dev_file)
 
 nocluster = noCluster.noCluster(embLen, word_size, type_size, drop_prob)
+print('embLen, word_size, type_size: ', embLen, word_size, type_size)
 
 nocluster.load_word_embedding(pos_embedding_tensor)
 
