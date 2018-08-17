@@ -59,6 +59,7 @@ nocluster.load_word_embedding(pos_embedding_tensor)
 # optimizer = utils.sgd(nocluster.parameters(), lr=0.025)
 optimizer = optim.SGD(nocluster.parameters(), lr=0.1)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10)
+print('Total parameters: ', sum(p.numel() for p in nocluster.parameters() if p.requires_grad))
 
 torch.cuda.set_device(0)
 nocluster.cuda()
