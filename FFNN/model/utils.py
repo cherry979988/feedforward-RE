@@ -461,18 +461,18 @@ def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, 
     precision /= cvnum
     return ndev_f1, f1score, recall, precision, meanBestF1
     
-def save_tune_log(dataset, drop_prob, repack_ratio, bat_size, f1, recall, precision, val_f1):
+def save_tune_log(dataset, drop_prob, repack_ratio, bat_size, embLen, f1, recall, precision, val_f1):
     if os.path.isfile('tune_log.pkl'):
         with open('tune_log.pkl', 'rb') as f:
             d = pickle.load(f)
     else:
         d = dict()
-    d[(dataset, drop_prob, repack_ratio, bat_size)] = val_f1
+    d[(dataset, drop_prob, repack_ratio, bat_size, embLen)] = val_f1
     with open('tune_log.pkl', 'wb') as f:
         pickle.dump(d, f, pickle.HIGHEST_PROTOCOL)
 
     f = open('tune_full_log.txt', 'a+')
-    f.write("Dataset: %s Drop_prob: %s Repack_ratio: %s Bat_size: %s\n" % (dataset, drop_prob, repack_ratio, bat_size))
+    f.write("Dataset: %s Drop_prob: %s Repack_ratio: %s Bat_size: %s embLen: %s\n" % (dataset, drop_prob, repack_ratio, bat_size, embLen))
     f.write("F1: %s Recall %s Precision %s Val_f1 %s\n" % (f1, recall, precision, val_f1))
     f.write("Time stamp: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     f.write("\n===\n")

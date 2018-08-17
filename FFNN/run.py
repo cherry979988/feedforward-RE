@@ -12,11 +12,11 @@ import model.pack as pack
 
 zip = getattr(itertools, 'izip', zip)
 
-if len(sys.argv) != 6:
-    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -randomseed(1234)')
+if len(sys.argv) != 7:
+    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -embLen(50) -randomseed(1234)')
     exit(1)
 
-SEED = int(sys.argv[5])
+SEED = int(sys.argv[6])
 print('Using Random Seed: '+str(SEED))
 torch.manual_seed(SEED)
 np.random.seed(SEED)
@@ -31,12 +31,12 @@ feature_file = './data/intermediate/' + dataset + '/rm/feature.txt'
 type_file = './data/intermediate/' + dataset + '/rm/type.txt'
 none_ind = utils.get_none_id(type_file)
 print("None id:", none_ind)
-embLen = 50
 
 # tunable prams
 drop_prob = float(sys.argv[2])
 repack_ratio = float(sys.argv[3])
 bat_size = int(sys.argv[4])
+embLen = int(sys.argv[5])
 
 word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 
@@ -119,4 +119,4 @@ print('F1 = %.4f, recall = %.4f, precision = %.4f, val f1 = %.4f)' %
        best_precision,
        best_meanBestF1))
 
-utils.save_tune_log(dataset, drop_prob, repack_ratio, bat_size, best_f1, best_recall, best_precision, best_meanBestF1)
+utils.save_tune_log(dataset, drop_prob, repack_ratio, bat_size, embLen, best_f1, best_recall, best_precision, best_meanBestF1)
