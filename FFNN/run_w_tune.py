@@ -12,8 +12,8 @@ import model.pack as pack
 
 zip = getattr(itertools, 'izip', zip)
 
-if len(sys.argv) < 7:
-    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -type(max/entropy) -randomseed(1234) -info')
+if len(sys.argv) < 8:
+    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -type(max/entropy) -randomseed(1234) -cv_ratio(0.1)')
     exit(1)
 
 TYPE = sys.argv[5]
@@ -42,9 +42,10 @@ embLen = 50
 drop_prob = float(sys.argv[2])
 repack_ratio = float(sys.argv[3])
 bat_size = int(sys.argv[4])
+cv_ratio = float(sys.argv[7])
 
-if len(sys.argv) >= 6:
-    info = ' '.join(sys.argv[6:])
+if len(sys.argv) > 8:
+    info = ' '.join(sys.argv[8:])
 else:
     info = 'default tune thres run'
 
@@ -110,9 +111,9 @@ for epoch in range(200):
 
     ndevF1, f1score, recall, precision, meanBestF1 = (0,0,0,0,0)
     if TYPE == 'entropy':
-        ndevF1, f1score, recall, precision, meanBestF1 = utils.CrossValidation_New(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
+        ndevF1, f1score, recall, precision, meanBestF1 = utils.CrossValidation_New(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind, ratio=cv_ratio)
     else:
-        ndevF1, f1score, recall, precision, meanBestF1 = utils.CrossValidation_New(ind_dev.data, maxprob_dev.data, label_list_dev, ind.data, maxprob.data, label_list_test, none_ind)
+        ndevF1, f1score, recall, precision, meanBestF1 = utils.CrossValidation_New(ind_dev.data, maxprob_dev.data, label_list_dev, ind.data, maxprob.data, label_list_test, none_ind, ratio=cv_ratio)
     # f1score, recall, precision, meanBestF1 = utils.eval_score(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
     scheduler.step(ndevF1)
 
@@ -137,4 +138,4 @@ print('F1 = %.4f, recall = %.4f, precision = %.4f, \nclean_dev_f1 = %.4f, noisy_
        best_meanBestF1,
        best_noisy_dev_F1))
 
-utils.save_tune_log_cv(dataset, drop_prob, repack_ratio, bat_size, best_f1, best_recall, best_precision, best_meanBestF1, best_noisy_dev_F1, info)
+# utils.save_tune_log_cv(dataset, drop_prob, repack_ratio, bat_size, best_f1, best_recall, best_precision, best_meanBestF1, best_noisy_dev_F1, info)
