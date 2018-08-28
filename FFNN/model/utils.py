@@ -190,7 +190,8 @@ def calcInd(batch_probs):
     _, ind = torch.max(batch_probs, 1)
     return ind
 
-def calcMaxProb(batch_probs):
+def calcMaxProb(batch_scores):
+    batch_probs = nn.functional.softmax(batch_scores)
     prob, _ = torch.max(batch_probs, 1)
     return prob
 
