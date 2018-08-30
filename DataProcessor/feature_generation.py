@@ -65,13 +65,13 @@ if __name__ == "__main__":
     dev_json = outdir + '/dev_new.json'
 
     ### Generate features using Python wrapper (disabled if using run_nlp.sh)
-    print 'Start nlp parsing'
-    multi_process_parse(raw_train_json, train_json, True, numOfNones)
-    print 'Train set parsing done'
-    multi_process_parse(raw_dev_json, dev_json, False, 1)
-    print 'Dev set parsing done'
-    multi_process_parse(raw_test_json, test_json, False, 1)
-    print 'Test set parsing done'
+    #print 'Start nlp parsing'
+    #multi_process_parse(raw_train_json, train_json, True, numOfNones)
+    #print 'Train set parsing done'
+    #multi_process_parse(raw_dev_json, dev_json, False, 1)
+    #print 'Dev set parsing done'
+    #multi_process_parse(raw_test_json, test_json, False, 1)
+    #print 'Test set parsing done'
 
     print 'Start rm feature extraction'
     pipeline(train_json, indir + '/brown', outdir, requireEmType=requireEmType, isEntityMention=False)
