@@ -42,10 +42,10 @@ class EMTypeFeature(AbstractFeature):
     def apply(self, sentence, mention, features):
         for em in sentence.entityMentions:
             if em.start == mention.em1Start and em.end == mention.em1End:
-                for l in em.labels:
+                for l in em.labels.split(','):
                     features.append('EM1_TYPE_%s' % l)
             if em.start == mention.em2Start and em.end == mention.em2End:
-                for l in em.labels:
+                for l in em.labels.split(','):
                     features.append('EM2_TYPE_%s' % l)
 
 class SpecialPatternFeature(AbstractFeature):
