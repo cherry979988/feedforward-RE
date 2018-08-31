@@ -59,10 +59,10 @@ if __name__ == "__main__":
 
     raw_train_json = indir + '/train_split.json'
     raw_test_json = indir + '/test.json'
-    train_json = outdir + '/train_new.json'
-    test_json = outdir + '/test_new.json'
+    train_json = outdir + '/train_new_with_ner.json'
+    test_json = outdir + '/test_new_with_ner.json'
     raw_dev_json = indir + '/dev.json'
-    dev_json = outdir + '/dev_new.json'
+    dev_json = outdir + '/dev_new_with_ner.json'
 
     ### Generate features using Python wrapper (disabled if using run_nlp.sh)
     #print 'Start nlp parsing'
