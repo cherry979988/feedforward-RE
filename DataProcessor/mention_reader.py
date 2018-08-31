@@ -70,6 +70,8 @@ class MentionReader:
             sentence.pos = decoded['pos']
         if 'questionPositions' in decoded:
             sentence.questionPositions = decoded['questionPositions']
+        if 'ner' in decoded:
+            sentence.ner = decoded['ner']
         """
         if 'dep' in decoded:
             for dep in decoded['dep']:
