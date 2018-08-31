@@ -44,12 +44,12 @@ class EMTypeFeature(AbstractFeature):
             if em.start == mention.em1Start and em.end == mention.em1End:
                 em_type_feat_set = set()
                 for l in em.labels.split(','):
-                    em_type_feat_set.add('EM1_TYPE_%s' % l.split('/')[1])
+                    em_type_feat_set.add('EM1_TYPE_%s' % l.lstrip('/').split('/')[0])
                 features += list(em_type_feat_set)
             if em.start == mention.em2Start and em.end == mention.em2End:
                 em_type_feat_set = set()
                 for l in em.labels.split(','):
-                    em_type_feat_set.add('EM2_TYPE_%s' % l.split('/')[1])
+                    em_type_feat_set.add('EM2_TYPE_%s' % l.lstrip('/').split('/')[0])
                 features += list(em_type_feat_set)
 
 class SpecialPatternFeature(AbstractFeature):

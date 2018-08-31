@@ -379,7 +379,13 @@ def noCrossValidation(pre_ind_dev, pre_entropy_dev, true_ind_dev, pre_ind_test, 
 
     return f1score, recall, precision, val_f1
 
-def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, pre_entropy, true_ind, noneInd, ratio=0.1, cvnum=100):
+def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, pre_entropy, true_ind, noneInd, thres_type='max', ratio=0.1, cvnum=100):
+    # > for 'max' and < for 'entropy'
+    if thres_type == 'max':
+        SIGN = 1
+    else:
+        SIGN = -1
+        
     # calculate the f1 without threshold on ndev set
     f1score = 0.0
     recall = 0.0
@@ -433,7 +439,7 @@ def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, 
             corrected = 0
             predicted = 0
             for ins in val:
-                if ins[1] > threshold and ins[0] != noneInd:
+                if SIGN * ins[1] > SIGN * threshold and ins[0] != noneInd:
                     predicted += 1
                     if ins[0] == ins[2][0]:
                         corrected += 1
@@ -448,7 +454,7 @@ def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, 
         for ins in eva:
             if ins[2][0] != noneInd:
                 ofInterest += 1
-            if ins[1] > bestThreshold and ins[0] != noneInd:
+            if SIGN * ins[1] > SIGN * bestThreshold and ins[0] != noneInd:
                 predicted += 1
                 if ins[0] == ins[2][0]:
                     corrected += 1
