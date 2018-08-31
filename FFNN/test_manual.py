@@ -6,8 +6,8 @@ import model.pack as pack
 import model.noCluster as noCluster
 import sys
 
-if len(sys.argv) != 6:
-    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -randomseed(1234)')
+if len(sys.argv) != 7:
+    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -embLen(50) -randomseed(1234)')
     exit(1)
 
 SEED = int(sys.argv[6])
