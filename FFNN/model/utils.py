@@ -425,6 +425,7 @@ def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, 
     recall = 0.0
     precision = 0.0
     meanBestF1 = 0.0
+    pn_precision = 0.0
     valSize = int(np.floor(ratio * len(pre_ind)))
     data = [[pre_ind[ind], pre_entropy[ind], true_ind[ind]] for ind in range(0, len(pre_ind))]
     for cvind in range(cvnum):
@@ -470,11 +471,20 @@ def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, 
         recall += (1.0 * corrected / ofInterest)
         precision += (1.0 * corrected / (predicted + 0.00001))
 
+        corrected = 0
+        for ins in data:
+            if (ins[0] == noneInd or SIGN * ins[1] < SIGN * bestThreshold) and ins[2][0] == noneInd:
+                corrected += 1
+            if (ins[0] != noneInd and SIGN * ins[1] >= SIGN * bestThreshold) and ins[2][0] != noneInd:
+                corrected += 1
+        pn_precision += corrected / len(pre_ind) # positive_negative precision
+
     meanBestF1 /= cvnum
     f1score /= cvnum
     recall /= cvnum
     precision /= cvnum
-    return ndev_f1, f1score, recall, precision, meanBestF1
+    pn_precision /= cvnum
+    return ndev_f1, f1score, recall, precision, meanBestF1, pn_precision
     
 def save_tune_log(dataset, drop_prob, repack_ratio, bat_size, embLen, f1, recall, precision, val_f1):
     if os.path.isfile('tune_log.pkl'):

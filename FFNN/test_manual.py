@@ -76,9 +76,9 @@ for file in [train_file, dev_file, test_file]:
         file.close()
 
 # max threshold
-ndevF1, f1score, recall, precision, meanBestF1 = utils.CrossValidation_New(ind.data, maxprob.data, label_list_test, ind.data, maxprob.data, label_list_test, none_ind, thres_type='max')
-print('Max Thres \tF1 = %.4f, recall = %.4f, precision = %.4f, ndevF1 = %.4f, cdevF1 = %.4f' % (f1score, recall, precision, ndevF1, meanBestF1))
+ndevF1, f1score, recall, precision, meanBestF1, pn_precision = utils.CrossValidation_New(ind.data, maxprob.data, label_list_test, ind.data, maxprob.data, label_list_test, none_ind, thres_type='max')
+print('Max Thres \tF1 = %.4f, recall = %.4f, precision = %.4f, ndevF1 = %.4f, cdevF1 = %.4f, pn_precision = %.4f' % (f1score, recall, precision, ndevF1, meanBestF1, pn_precision))
 
 # entropy threshold
-ndevF1, f1score, recall, precision, meanBestF1 = utils.CrossValidation_New(ind.data, entropy.data, label_list_test, ind.data, entropy.data, label_list_test, none_ind, thres_type='entropy')
-print('Entropy Thres \tF1 = %.4f, recall = %.4f, precision = %.4f, ndevF1 = %.4f, cdevF1 = %.4f' % (f1score, recall, precision, ndevF1, meanBestF1))
+ndevF1, f1score, recall, precision, meanBestF1, pn_precision = utils.CrossValidation_New(ind.data, entropy.data, label_list_test, ind.data, entropy.data, label_list_test, none_ind, thres_type='entropy')
+print('Entropy Thres \tF1 = %.4f, recall = %.4f, precision = %.4f, ndevF1 = %.4f, cdevF1 = %.4f, pn_precision = %.4f' % (f1score, recall, precision, ndevF1, meanBestF1, pn_precision))
