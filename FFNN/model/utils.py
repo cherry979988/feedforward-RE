@@ -377,7 +377,15 @@ def noCrossValidation(pre_ind_dev, pre_entropy_dev, true_ind_dev, pre_ind_test, 
     recall = (1.0 * corrected / ofInterest)
     precision = (1.0 * corrected / (predicted + 1e-8))
 
-    return f1score, recall, precision, val_f1
+    corrected = 0
+    for ins in data:
+        if ins[0] == noneInd and ins[2][0] == noneInd:
+            corrected += 1
+        if ins[0] != noneInd and ins[2][0] != noneInd:
+            corrected += 1
+    pn_precision = corrected / len(pre_ind_test) # positive_negative precision
+
+    return f1score, recall, precision, val_f1, pn_precision
 
 def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, pre_entropy, true_ind, noneInd, thres_type='max', ratio=0.1, cvnum=100):
     # > for 'max' and < for 'entropy'

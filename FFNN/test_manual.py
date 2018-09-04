@@ -23,7 +23,9 @@ bat_size = int(sys.argv[4])
 embLen = int(sys.argv[5])
 
 train_file = './data/intermediate/' + dataset + '/rm/train.data'
+dev_file = './data/intermediate/' + dataset + '/rm/dev.data'
 test_file = './data/intermediate/' + dataset + '/rm/test.data'
+
 feature_file = './data/intermediate/' + dataset + '/rm/feature.txt'
 type_file = './data/intermediate/' + dataset + '/rm/type.txt'
 none_ind = utils.get_none_id(type_file)
@@ -31,7 +33,6 @@ print("None id:", none_ind)
 
 word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 _, type_size, _, _, _ = utils.load_corpus(train_file)
-doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.load_corpus(test_file)
 
 nocluster = noCluster.noCluster(embLen, word_size, type_size, drop_prob)
 nocluster.load_state_dict(torch.load('./dumped_models/ffnn_dump_'+'_'.join(sys.argv[1:7])+'.pth'))
@@ -41,35 +42,38 @@ nocluster.cuda()
 if_cuda = True
 
 packer = pack.repack(repack_ratio, 20, if_cuda)
-fl_t, of_t = packer.repack_eva(feature_list_test)
 
-nocluster.eval()
-scores = nocluster(fl_t, of_t)
-ind = utils.calcInd(scores)
-entropy = utils.calcEntropy(scores)
-maxprob = utils.calcMaxProb(scores)
+print('in the order of: train, dev, test...\n')
+for file in [train_file, dev_file, test_file]:
+    doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.load_corpus(file)
 
-golden_list = []
-predict_list = []
+    fl_t, of_t = packer.repack_eva(feature_list_test)
 
-print(type(label_list_test[0]))
-print(type(ind))
+    nocluster.eval()
+    scores = nocluster(fl_t, of_t)
+    ind = utils.calcInd(scores)
+    entropy = utils.calcEntropy(scores)
+    maxprob = utils.calcMaxProb(scores)
 
-# vanilla prediction
+    golden_list = []
+    predict_list = []
 
-for i in range(len(label_list_test)):
-    golden_list.append(label_list_test[i][0])
-    predict_list.append(ind.data[i])
+    # vanilla prediction
 
-filename = './case_study/' + dataset + '_case_study.txt'
-file = open(filename, 'w')
-file.write(str(predict_list)+'\n')
-file.write(str(golden_list)+'\n')
+    for i in range(len(label_list_test)):
+        golden_list.append(label_list_test[i][0])
+        predict_list.append(ind.data[i])
 
-f1score, recall, precision, val_f1 = utils.noCrossValidation(ind.data, entropy.data, label_list_test, ind.data, entropy.data, label_list_test, none_ind)
-print('F1 = %.4f, recall = %.4f, precision = %.4f' % (f1score, recall, precision))
-file.write('F1 = %.4f, recall = %.4f, precision = %.4f' % (f1score, recall, precision))
-print(val_f1)
+    f1score, recall, precision, val_f1, pn_precision = utils.noCrossValidation(ind.data, entropy.data, label_list_test, ind.data, entropy.data, label_list_test, none_ind)
+    print('F1 = %.4f, recall = %.4f, precision = %.4f, pn_precision = %.4f' % (f1score, recall, precision, pn_precision))
+
+    if file == test_file:
+        filename = './case_study/' + dataset + '_case_study.txt'
+        file = open(filename, 'w')
+        file.write(str(predict_list)+'\n')
+        file.write(str(golden_list)+'\n')
+        file.write('F1 = %.4f, recall = %.4f, precision = %.4f' % (f1score, recall, precision))
+        file.close()
 
 # max threshold
 ndevF1, f1score, recall, precision, meanBestF1 = utils.CrossValidation_New(ind.data, maxprob.data, label_list_test, ind.data, maxprob.data, label_list_test, none_ind, thres_type='max')
