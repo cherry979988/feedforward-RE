@@ -385,7 +385,19 @@ def noCrossValidation(pre_ind_dev, pre_entropy_dev, true_ind_dev, pre_ind_test, 
             corrected += 1
     pn_precision = corrected / len(pre_ind_test) # positive_negative precision
 
-    return f1score, recall, precision, val_f1, pn_precision
+    corrected = 0.0
+    predicted = 0.0
+    ofInterest = 0.0
+    for ins in data:
+        if ins[0] == noneInd and ins[2][0] == noneInd:
+            corrected += 1
+        if ins[2][0] == noneInd:
+            ofInterest += 1
+        if ins[0] == noneInd:
+            predicted += 1
+    # print('NoneType precision: ', corrected/predicted, ' recall: ', corrected/ofInterest)
+
+    return f1score, recall, precision, val_f1, pn_precision, corrected/predicted, corrected/ofInterest
 
 def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, pre_entropy, true_ind, noneInd, thres_type='max', ratio=0.1, cvnum=100):
     # > for 'max' and < for 'entropy'
@@ -472,12 +484,12 @@ def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, 
         precision += (1.0 * corrected / (predicted + 0.00001))
 
         corrected = 0
-        for ins in data:
+        for ins in eva:
             if (ins[0] == noneInd or SIGN * ins[1] < SIGN * bestThreshold) and ins[2][0] == noneInd:
                 corrected += 1
             if (ins[0] != noneInd and SIGN * ins[1] >= SIGN * bestThreshold) and ins[2][0] != noneInd:
                 corrected += 1
-        pn_precision += corrected / len(pre_ind) # positive_negative precision
+        pn_precision += corrected / len(eva) # positive_negative precision
 
     meanBestF1 /= cvnum
     f1score /= cvnum

@@ -64,8 +64,9 @@ for file in [train_file, dev_file, test_file]:
         golden_list.append(label_list_test[i][0])
         predict_list.append(ind.data[i])
 
-    f1score, recall, precision, val_f1, pn_precision = utils.noCrossValidation(ind.data, entropy.data, label_list_test, ind.data, entropy.data, label_list_test, none_ind)
+    f1score, recall, precision, val_f1, pn_precision, nprecision, nrecall = utils.noCrossValidation(ind.data, entropy.data, label_list_test, ind.data, entropy.data, label_list_test, none_ind)
     print('F1 = %.4f, recall = %.4f, precision = %.4f, pn_precision = %.4f' % (f1score, recall, precision, pn_precision))
+    print('NoneType precision: ', nprecision, ' recall: ', nrecall)
 
     if file == test_file:
         filename = './case_study/' + dataset + '_case_study.txt'
