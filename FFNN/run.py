@@ -6,14 +6,15 @@ import itertools
 import numpy as np
 import random
 import sys
+import os
 import model.utils as utils
 import model.noCluster as noCluster
 import model.pack as pack
 
 zip = getattr(itertools, 'izip', zip)
 
-if len(sys.argv) != 7:
-    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -embLen(50) -randomseed(1234)')
+if len(sys.argv) != 8:
+    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -embLen(50) -randomseed(1234) -info')
     exit(1)
 
 SEED = int(sys.argv[6])
@@ -29,7 +30,12 @@ test_file = './data/intermediate/' + dataset + '/rm/test.data'
 
 feature_file = './data/intermediate/' + dataset + '/rm/feature.txt'
 type_file = './data/intermediate/' + dataset + '/rm/type.txt'
+type_file_test = './data/intermediate/' + dataset + '/rm/type_test.txt'
 none_ind = utils.get_none_id(type_file)
+
+label_distribution = utils.get_distribution(type_file)
+label_distribution_test = utils.get_distribution(type_file_test)
+# print(label_distribution)
 print("None id:", none_ind)
 
 # tunable prams
@@ -37,6 +43,7 @@ drop_prob = float(sys.argv[2])
 repack_ratio = float(sys.argv[3])
 bat_size = int(sys.argv[4])
 embLen = int(sys.argv[5])
+info = sys.argv[7]
 
 word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 
@@ -46,7 +53,7 @@ doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.loa
 
 doc_size_dev, _, feature_list_dev, label_list_dev, type_list_dev = utils.load_corpus(dev_file)
 
-nocluster = noCluster.noCluster(embLen, word_size, type_size, drop_prob)
+nocluster = noCluster.noCluster(embLen, word_size, type_size, drop_prob, label_distribution, label_distribution_test)
 print('embLen, word_size, type_size: ', embLen, word_size, type_size)
 
 nocluster.load_word_embedding(pos_embedding_tensor)
@@ -75,6 +82,7 @@ for epoch in range(200):
     print("epoch: " + str(epoch))
     nocluster.train()
     sf_tp, sf_fl = utils.shuffle_data(type_list, feature_list)
+    # print('#sample:',len(sf_tp))
     for b_ind in range(0, len(sf_tp), bat_size):
         nocluster.zero_grad()
         if b_ind + bat_size > len(sf_tp):
@@ -88,15 +96,15 @@ for epoch in range(200):
         optimizer.step()
     # evaluation mode
     nocluster.eval()
-    scores = nocluster(fl_t, of_t)
+    scores = nocluster(fl_t, of_t, 'test')
     ind = utils.calcInd(scores)
     entropy = utils.calcEntropy(scores)
 
-    scores_dev = nocluster(fl_d, of_d)
+    scores_dev = nocluster(fl_d, of_d, 'dev')
     ind_dev = utils.calcInd(scores_dev)
     entropy_dev = utils.calcEntropy(scores_dev)
 
-    f1score, recall, precision, meanBestF1, _, _, _ = utils.noCrossValidation(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
+    f1score, recall, precision, meanBestF1, _, _, _, _ = utils.noCrossValidation(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
     # f1score, recall, precision, meanBestF1 = utils.eval_score(ind_dev.data, entropy_dev.data, label_list_dev, ind.data, entropy.data, label_list_test, none_ind)
     scheduler.step(meanBestF1)
 
@@ -110,7 +118,9 @@ for epoch in range(200):
         best_recall = recall
         best_precision = precision
         best_meanBestF1 = meanBestF1
-        torch.save(nocluster.state_dict(), './dumped_models/ffnn_dump_'+'_'.join(sys.argv[1:7])+'.pth')
+        if not os.path.exists('./dumped_models/%s' % info):
+            os.mkdir('./dumped_models/%s' % info)
+        torch.save(nocluster.state_dict(), './dumped_models/%s/ffnn_dump_' % info +'_'.join(sys.argv[1:7])+'.pth')
 
 print('Best result: ')
 print('F1 = %.4f, recall = %.4f, precision = %.4f, val f1 = %.4f)' %

@@ -80,7 +80,7 @@ if __name__ == '__main__':
 	parser.add_argument('--out_dir', type=str, default='./data/cotype_processed_data/KBP')
 	args = vars(parser.parse_args())
 
-	for data in ['train', 'test', 'dev']:
+	for data in ['test']:
 		read(data, args['in_dir'], args['out_dir'])
 	# print(relation_set)
 	# print(pos_set)

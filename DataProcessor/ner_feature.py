@@ -15,6 +15,7 @@ class NERFeature(object):
         self.feature_list = []
         self.feature_mapping = feature_mapping # {feature_name: [feature_id, feature_frequency]}
         self.label_mapping = label_mapping # {label_name: [label_id, label_frequency]}
+        self.lc = 0
         if isEntityMention:
             # head feature
             self.feature_list.append(EMHeadFeature())
@@ -72,6 +73,7 @@ class NERFeature(object):
         feature_ids = set()
         label_ids = set()
         for s in feature_str:
+            self.lc += 1
             if s in self.feature_mapping:
                 feature_ids.add(self.feature_mapping[s][0])
                 self.feature_mapping[s][1] += 1  # add frequency
@@ -255,6 +257,7 @@ def pipeline_test(json_file, brown_file, featurefile, labelfile, outdir, require
     reader.close()
     gx.close()
     gy.close()
+    print(ner_feature.lc)
 
 
 def load_map_qa(input):

@@ -19,6 +19,16 @@ def get_none_id(type_filename):
             if ls[0] == "None":
                 return int(ls[1])
 
+def get_distribution(type_filename):
+    with open(type_filename, encoding='utf-8') as type_file:
+        sum = 0
+        prob_lst = []
+        for line in type_file:
+            ls = line.strip().split()
+            sum += int(ls[2])
+            prob_lst.append(int(ls[2]))
+        prob_lst = [(c+0.00001) / float(sum) for c in prob_lst]
+        return prob_lst
 
 def to_scalar(var):
     return var.view(-1).data.tolist()[0]
@@ -181,8 +191,14 @@ def calcEntropy(batch_scores):
     # input: B * L
     # output: B
     batch_probs = nn.functional.softmax(batch_scores)
-    return torch.sum(batch_probs * torch.log(batch_probs), 1).neg()
+    #sum = torch.sum(batch_scores, 1)
+    #batch_scores = batch_scores.t()
+    #batch_probs = batch_scores / sum.expand_as(batch_scores)
+    # batch_probs = torch.transpose(batch_probs)
+    #print(batch_probs)
 
+    # return torch.sum(batch_probs * torch.log(batch_probs), 0).neg()
+    return torch.sum(batch_probs * torch.log(batch_probs), 1).neg()
 
 def calcInd(batch_probs):
     # input: B * L
@@ -192,6 +208,7 @@ def calcInd(batch_probs):
 
 def calcMaxProb(batch_scores):
     batch_probs = nn.functional.softmax(batch_scores)
+    # batch_probs = batch_scores / sum(batch_scores)
     prob, _ = torch.max(batch_probs, 1)
     return prob
 
@@ -385,6 +402,7 @@ def noCrossValidation(pre_ind_dev, pre_entropy_dev, true_ind_dev, pre_ind_test, 
             corrected += 1
     pn_precision = corrected / len(pre_ind_test) # positive_negative precision
 
+    accurate = 0.0
     corrected = 0.0
     predicted = 0.0
     ofInterest = 0.0
@@ -395,9 +413,14 @@ def noCrossValidation(pre_ind_dev, pre_entropy_dev, true_ind_dev, pre_ind_test, 
             ofInterest += 1
         if ins[0] == noneInd:
             predicted += 1
-    # print('NoneType precision: ', corrected/predicted, ' recall: ', corrected/ofInterest)
-
-    return f1score, recall, precision, val_f1, pn_precision, corrected/predicted, corrected/ofInterest
+        if ins[0] == ins[2][0]:
+            accurate += 1
+    #print('NoneType precision: ', corrected/predicted, ' recall: ', corrected/ofInterest)
+    #print(predicted, ofInterest)
+    if predicted == 0:
+        predicted = 1
+        print('Warning: Predicted 0 NoneType')
+    return f1score, recall, precision, val_f1, pn_precision, corrected/predicted, corrected/ofInterest, accurate/len(data)
 
 def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, pre_entropy, true_ind, noneInd, thres_type='max', ratio=0.1, cvnum=100):
     # > for 'max' and < for 'entropy'
@@ -437,8 +460,13 @@ def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, 
     recall = 0.0
     precision = 0.0
     meanBestF1 = 0.0
+    accuracy = 0.0
     pn_precision = 0.0
     valSize = int(np.floor(ratio * len(pre_ind)))
+
+    bestF1_alltime = 0.0
+    bestThres_alltime = 0.0
+
     data = [[pre_ind[ind], pre_entropy[ind], true_ind[ind]] for ind in range(0, len(pre_ind))]
     for cvind in range(cvnum):
         random.shuffle(data)
@@ -472,16 +500,29 @@ def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, 
         ofInterest = 0
         corrected = 0
         predicted = 0
+        acc_instance = 0
         for ins in eva:
+            cur_pred = noneInd
             if ins[2][0] != noneInd:
                 ofInterest += 1
             if SIGN * ins[1] > SIGN * bestThreshold and ins[0] != noneInd:
+                cur_pred = ins[0]
                 predicted += 1
                 if ins[0] == ins[2][0]:
                     corrected += 1
+            if cur_pred == ins[2][0]:
+                acc_instance += 1
         f1score += (2.0 * corrected / (ofInterest + predicted))
         recall += (1.0 * corrected / ofInterest)
         precision += (1.0 * corrected / (predicted + 0.00001))
+        accuracy += (1.0 * acc_instance / len(eva))
+
+        f1score_temp = (2.0 * corrected / (ofInterest + predicted))\
+
+        # choose one representative for plotting.
+        if f1score_temp > bestF1_alltime:
+            bestF1_alltime = f1score_temp
+            bestThres_alltime = bestThreshold
 
         corrected = 0
         for ins in eva:
@@ -496,7 +537,8 @@ def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, 
     recall /= cvnum
     precision /= cvnum
     pn_precision /= cvnum
-    return ndev_f1, f1score, recall, precision, meanBestF1, pn_precision
+    accuracy /= cvnum
+    return ndev_f1, f1score, recall, precision, meanBestF1, pn_precision, bestThres_alltime, accuracy
     
 def save_tune_log(dataset, drop_prob, repack_ratio, bat_size, embLen, f1, recall, precision, val_f1):
     if os.path.isfile('tune_log.pkl'):
@@ -536,3 +578,43 @@ def save_tune_log_cv(dataset, drop_prob, repack_ratio, bat_size, f1, recall, pre
     f.write("Time stamp: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     f.write("\n===\n")
 
+def eval_score_with_thres(pre_ind, pre_entropy, true_ind, noneInd, threshold, thres_type='max'):
+    # print prediction after thresholding to a file
+    if thres_type == 'max':
+        SIGN = 1
+    else:
+        SIGN = -1
+        
+    # calculate the f1 without threshold on ndev set
+    f1score = 0.0
+    recall = 0.0
+    precision = 0.0
+    data = [[pre_ind[ind], pre_entropy[ind], true_ind[ind]] for ind in range(0, len(pre_ind))]
+
+    ofInterest = 0
+    for ins in data:
+        if ins[2][0] != noneInd:
+            ofInterest += 1
+    corrected = 0
+    predicted = 0
+    for ins in data:
+        if SIGN * ins[1] > SIGN * threshold and ins[0] != noneInd:
+            predicted += 1
+            if ins[0] == ins[2][0]:
+                corrected += 1
+    f1score = (2.0 * corrected / (ofInterest + predicted))
+    recall = (1.0 * corrected / ofInterest)
+    precision = (1.0 * corrected / (predicted + 1e-8))
+
+    print(f1score, recall, precision)
+    print(corrected, ofInterest, predicted)
+
+    pre_ind_cutoff = pre_ind.clone()
+    for ind in range(0, len(pre_ind)):
+        ins = data[ind]
+        if SIGN * ins[1] > SIGN * threshold:
+            pre_ind_cutoff[ind] = pre_ind[ind]
+        else:
+            pre_ind_cutoff[ind] = noneInd
+
+    return pre_ind_cutoff

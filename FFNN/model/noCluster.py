@@ -10,7 +10,7 @@ import model.nce as nce
 import model.object as obj
 
 class noCluster(nn.Module):
-    def __init__(self, emblen, word_size, type_size, drop_prob, if_average=False):
+    def __init__(self, emblen, word_size, type_size, drop_prob, label_distribution, label_distribution_test, if_average=False):
         super(noCluster, self).__init__()
         self.emblen = emblen
         self.word_size = word_size
@@ -23,6 +23,11 @@ class noCluster(nn.Module):
 
         self.linear = nn.Linear(emblen, type_size, bias=False)
         self.linear.weight.data.zero_()
+
+        self.label_distribution = label_distribution
+        self.distribution_tensor = torch.log(torch.autograd.Variable(torch.cuda.FloatTensor(self.label_distribution), requires_grad=False))
+        self.label_distribution_test = label_distribution_test
+        self.distribution_tensor_test = torch.log(torch.autograd.Variable(torch.cuda.FloatTensor(self.label_distribution_test), requires_grad=False))
 
         # self.neg_word = nce.NCE_loss(word_size, emblen)
 
@@ -52,9 +57,15 @@ class noCluster(nn.Module):
         # loss = self.neg_word(pos_word, resampleFeature2, neg_sample, batch_size) + self.crit(scores, typeTensor)
         return loss
 
-    def forward(self, feature_seq, offset_seq):
+    def forward(self, feature_seq, offset_seq, type='train'):
         men_embedding = self.word_emb_bag(feature_seq, offset_seq)
+        self.men_embedding = men_embedding
         return self.linear(F.dropout(men_embedding, p=self.drop_prob, training=self.training))
+        #if not type == 'test':
+        #    return self.linear(F.dropout(men_embedding, p=self.drop_prob, training=self.training)) + self.distribution_tensor
+        #else:
+        #    return self.linear(F.dropout(men_embedding, p=self.drop_prob, training=self.training)) + self.distribution_tensor_test
+
 
     def freeze_params(self):
         # add bias to linear layer
