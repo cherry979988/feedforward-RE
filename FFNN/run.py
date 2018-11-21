@@ -24,7 +24,8 @@ np.random.seed(SEED)
 random.seed(SEED)
 
 dataset = sys.argv[1]
-train_file = './data/intermediate/' + dataset + '/rm/train.data'
+train_file = './data/intermediate/' + dataset + '/rm/train_x_corpus.txt'
+train_label_file = './data/intermediate/' + dataset + '/rm/train_y_corpus.txt'
 dev_file = './data/intermediate/' + dataset + '/rm/dev.data'
 test_file = './data/intermediate/' + dataset + '/rm/test.data'
 
@@ -47,7 +48,7 @@ info = sys.argv[7]
 
 word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 
-doc_size, type_size, feature_list, label_list, type_list = utils.load_corpus(train_file)
+doc_size, type_size, feature_list, label_list, type_list = utils.load_corpus_new(train_file, train_label_file)
 
 doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.load_corpus(test_file)
 
@@ -89,8 +90,8 @@ for epoch in range(200):
             b_eind = len(sf_tp)
         else:
             b_eind = b_ind + bat_size
-        t_t, fl_rt1, fl_rt2, fl_dt, off_dt = packer.repack(sf_fl[b_ind: b_eind], sf_tp[b_ind: b_eind])
-        loss = nocluster.NLL_loss(t_t, fl_rt1, fl_rt2, fl_dt, off_dt, 2)
+        t_t, fl_rt1, fl_rt2, fl_dt, off_dt, scope = packer.repack(sf_fl[b_ind: b_eind], sf_tp[b_ind: b_eind])
+        loss = nocluster.NLL_loss(t_t, fl_rt1, fl_rt2, fl_dt, off_dt, 2, scope)
         loss.backward()
         nn.utils.clip_grad_norm(nocluster.parameters(), 5)
         optimizer.step()

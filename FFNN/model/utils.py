@@ -113,10 +113,10 @@ def load_corpus(corpus, if_cuda=True):
         tmp = max(label_vec)
         if type_size < tmp:
             type_size = tmp
-        #if if_cuda:
-        #    label_list.append(torch.cuda.LongTensor(label_vec))
-        #else:
-        label_list.append(torch.LongTensor(label_vec))
+        if if_cuda:
+            label_list.append(torch.cuda.LongTensor(label_vec))
+        else:
+            label_list.append(torch.LongTensor(label_vec))
     type_size = type_size + 1
     type_list = list()
     for label in label_list:
@@ -126,6 +126,39 @@ def load_corpus(corpus, if_cuda=True):
         type_list.append(type_vec)
     return size, type_size, feature_list, label_list, type_list
 
+def load_corpus_new(corpus, labels, if_cuda=True):
+    fin1 = open(corpus, 'r')
+    fin2 = open(labels, 'r')
+    #line1 = fin1.readline()
+    #line2 = fin2.readline()
+    feature_list = list()
+    label_list = list()
+    scope_list = list()
+    type_size = -1
+    for line1 in fin1:
+        if line1.isspace():
+            break
+        line1 = line1.split('\t')
+        line2 = fin2.readline().split('\t')
+        sentences = line1[1].split(';')
+        feature_list.append([torch.LongTensor(list(map(lambda t: int(t), sent.split(',')))) for sent in sentences])
+        label_vec = list(map(lambda t: int(t), line2[1].strip().split(',')))
+        if if_cuda:
+            label_list.append(torch.cuda.LongTensor(label_vec))
+        else:
+            label_list.append(torch.LongTensor(label_vec))
+        scope_list.append(len(sentences))
+        tmp = max(label_vec)
+        if type_size < tmp:
+            type_size = tmp
+    type_size = type_size + 1
+    type_list = list()
+    for label in label_list: # one hot
+        type_vec = torch.FloatTensor(type_size).zero_()
+        type_vec[label] = 1
+        type_vec = type_vec.view(1, -1)
+        type_list.append(type_vec)
+    return 0, type_size, feature_list, label_list, type_list
 
 def load_qa_corpus(corpus):
     fin = open(corpus, 'r')

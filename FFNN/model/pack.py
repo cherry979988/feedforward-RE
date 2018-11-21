@@ -19,15 +19,23 @@ class repack():
 
     def repack(self, feature_list, type_list):
         type_tensor = torch.cat(type_list, dim=0)
+        feature_list_expand = []
+        scope_list = [0]
 
-        feature_list_dropout = list(map(self.cur_dropout, feature_list))
+        for instance in feature_list:
+            for sentence in instance:
+                feature_list_expand.append(sentence)
+            scope_list.append(scope_list[-1] + len(instance))
+
+        scope_list = torch.LongTensor(scope_list)
+        feature_list_dropout = list(map(self.cur_dropout, feature_list_expand))
         offset_dropout_tensor = torch.LongTensor(
             [0] + list(map(lambda t: t.size(0), feature_list_dropout[:-1]))).cumsum(0)
         # feature_list_dropout_tensor = list(map(lambda t: autograd.Variable(t), feature_list_dropout))
         feature_list_dropout_tensor = torch.cat(feature_list_dropout, dim=0)
 
-        feature_list_resample_tensor_1 = torch.cat(list(map(self.cur_resample, feature_list)), dim=0)
-        feature_list_resample_tensor_2 = torch.cat(list(map(self.cur_resample, feature_list)), dim=0)
+        feature_list_resample_tensor_1 = torch.cat(list(map(self.cur_resample, feature_list_expand)), dim=0)
+        feature_list_resample_tensor_2 = torch.cat(list(map(self.cur_resample, feature_list_expand)), dim=0)
 
         # return autograd.Variable(type_tensor), autograd.Variable(feature_list_resample_tensor_1), autograd.Variable(feature_list_resample_tensor_2), feature_list_dropout_tensor, autograd.Variable(offset_dropout_tensor)
 
@@ -35,11 +43,12 @@ class repack():
             return autograd.Variable(type_tensor).cuda(), autograd.Variable(
                 feature_list_resample_tensor_1).cuda(), autograd.Variable(
                 feature_list_resample_tensor_2).cuda(), autograd.Variable(
-                feature_list_dropout_tensor).cuda(), autograd.Variable(offset_dropout_tensor).cuda()
+                feature_list_dropout_tensor).cuda(), autograd.Variable(offset_dropout_tensor).cuda(), \
+                autograd.Variable(scope_list).cuda()
         else:
             return autograd.Variable(type_tensor), autograd.Variable(feature_list_resample_tensor_1), autograd.Variable(
                 feature_list_resample_tensor_2), autograd.Variable(feature_list_dropout_tensor), autograd.Variable(
-                offset_dropout_tensor)
+                offset_dropout_tensor), autograd.Variable(scope_list).cuda()
 
     def repack_eva(self, feature_list):
         offset_tensor = torch.LongTensor([0] + list(map(lambda t: t.size(0), feature_list[:-1]))).cumsum(0)

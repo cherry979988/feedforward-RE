@@ -101,4 +101,6 @@ class Sentence(object):
     def size(self):
         return min(len(self.tokens),len(self.pos))
 
-
+    def get_em_text(self, emStart, emEnd):
+        em_text = '-'.join(self.tokens[emStart:emEnd])
+        return em_text

@@ -49,18 +49,34 @@ class noCluster(nn.Module):
     def load_linear_weights(self, linear_weights):
         self.linear.weight = nn.Parameter(linear_weights)
 
-    def NLL_loss(self, typeTensor, resampleFeature1, resampleFeature2, feaDrop, offsetDrop, neg_sample):
-        scores = self(feaDrop, offsetDrop)
+    def NLL_loss(self, typeTensor, resampleFeature1, resampleFeature2, feaDrop, offsetDrop, neg_sample, scope):
+        self.typeTensor = typeTensor
+        scores = self(feaDrop, offsetDrop, scope=scope)
         # batch_size = scores.size(0)
         pos_word = self.word_emb(resampleFeature1)
         loss = self.crit(scores, typeTensor)
         # loss = self.neg_word(pos_word, resampleFeature2, neg_sample, batch_size) + self.crit(scores, typeTensor)
         return loss
 
-    def forward(self, feature_seq, offset_seq, type='train'):
-        men_embedding = self.word_emb_bag(feature_seq, offset_seq)
-        self.men_embedding = men_embedding
-        return self.linear(F.dropout(men_embedding, p=self.drop_prob, training=self.training))
+    def forward(self, feature_seq, offset_seq, type='train', scope=None):
+        if type != 'train':
+            men_embedding = self.word_emb_bag(feature_seq, offset_seq)
+            self.men_embedding = men_embedding
+            return self.linear(F.dropout(men_embedding, p=self.drop_prob, training=self.training))
+        else:
+            mem_embedding = self.word_emb_bag(feature_seq, offset_seq)
+            _, type = torch.max(self.typeTensor, 1)
+            bag_emb = []
+            for i in range(len(scope)-1):
+                #print(scope[i].data[0])
+                #print(scope[i+1].data[0])
+                emb = mem_embedding[scope[i]:scope[i+1]]
+                scores = self.linear(F.dropout(emb, p=self.drop_prob, training=self.training))
+                att_weight = F.softmax(scores[:, type[i]])
+                bag_emb.append(torch.matmul(att_weight, emb)) # direction?
+                # print(torch.stack(bag_emb))
+            return self.linear(F.dropout(torch.stack(bag_emb), p=self.drop_prob, training=self.training))
+
         #if not type == 'test':
         #    return self.linear(F.dropout(men_embedding, p=self.drop_prob, training=self.training)) + self.distribution_tensor
         #else:

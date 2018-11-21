@@ -37,6 +37,54 @@ def multi_process_parse(fin, fout, isTrain, nOfNones):
         proc.join()
     out_file.close()
 
+def corpus_level_merge_feature(filein, fileout):
+    d = dict()
+    fin = open(filein, 'r')
+    lines = fin.readlines()
+    print(len(lines))
+    for line in lines:
+        line = line.strip('\n').split('\t')
+        id = line[0].split('_')
+        id = '_'.join(id[:2])
+        features = line[1]
+        if id not in d:
+            d[id] = features
+        else:
+            d[id] = d[id] + ';' + features
+    keys = sorted(d.keys())
+    # print(keys[:100])
+    fout = open(fileout, 'w')
+    for key in keys:
+        fout.write(key+'\t'+d[key]+'\n')
+        # fout.write(d[key])
+    fout.close()
+
+def corpus_level_merge_label(filein, fileout):
+    d = dict()
+    fin = open(filein, 'r')
+    lines = fin.readlines()
+    for line in lines:
+        line = line.strip('\n').split('\t')
+        id = line[0].split('_')
+        id = '_'.join(id[:2])
+        if id not in d:
+            d[id] = line[1]
+    keys = sorted(d.keys())
+
+    fout = open(fileout, 'w')
+    for key in keys:
+        fout.write(key+'\t'+d[key]+'\n')
+    fout.close()
+
+def corpus_level_merge():
+    datalist = ['train']
+    for item in datalist:
+        if item == 'train': # _new means after filter
+            corpus_level_merge_feature(outdir + '/%s_x_new.txt' % item, outdir + '/%s_x_corpus.txt' % item)
+        else:
+            corpus_level_merge_feature(outdir+'/%s_x.txt'%item, outdir+'/%s_x_corpus.txt'%item)
+        corpus_level_merge_label(outdir+'/%s_y.txt'%item, outdir+'/%s_y_corpus.txt'%item)
+
 if __name__ == "__main__":
     if len(sys.argv) != 6:
         print 'Usage:feature_generation.py -DATA -numOfProcesses -emtypeFlag(0 or 1) -negWeight (1.0) -nOfNones (1)'
@@ -47,7 +95,7 @@ if __name__ == "__main__":
         requireEmType = True
     elif int(sys.argv[3]) == 0:
         outdir = 'data/intermediate/%s/rm' % sys.argv[1]
-        requireEmType = True
+        requireEmType = False
     else:
         print 'Usage:feature_generation.py -DATA -numOfProcesses -emtypeFlag(0 or 1)'
         exit(1)
@@ -59,10 +107,10 @@ if __name__ == "__main__":
 
     raw_train_json = indir + '/train_split.json'
     raw_test_json = indir + '/test.json'
-    train_json = outdir + '/train_new_with_ner.json'
-    test_json = outdir + '/test_new_with_ner.json'
+    train_json = outdir + '/train_new.json'
+    test_json = outdir + '/test_new.json'
     raw_dev_json = indir + '/dev.json'
-    dev_json = outdir + '/dev_new_with_ner.json'
+    dev_json = outdir + '/dev_new.json'
 
     ### Generate features using Python wrapper (disabled if using run_nlp.sh)
     #print 'Start nlp parsing'
@@ -79,3 +127,5 @@ if __name__ == "__main__":
     pipeline_test(test_json, indir + '/brown', outdir+'/feature.txt',outdir+'/type.txt', outdir, requireEmType=requireEmType, isEntityMention=False)
     pipeline_test(dev_json, indir + '/brown', outdir+'/feature.txt',outdir+'/type.txt',outdir+'/dev', requireEmType=requireEmType, isEntityMention=False)
     move_dev_files(outdir)
+
+    corpus_level_merge()
