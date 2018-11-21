@@ -141,13 +141,19 @@ def load_corpus_new(corpus, labels, if_cuda=True):
         line1 = line1.split('\t')
         line2 = fin2.readline().split('\t')
         sentences = line1[1].split(';')
-        feature_list.append([torch.LongTensor(list(map(lambda t: int(t), sent.split(',')))) for sent in sentences])
+        #feature_list.append([torch.LongTensor(list(map(lambda t: int(t), sent.split(',')))) for sent in sentences])
         label_vec = list(map(lambda t: int(t), line2[1].strip().split(',')))
-        if if_cuda:
-            label_list.append(torch.cuda.LongTensor(label_vec))
-        else:
-            label_list.append(torch.LongTensor(label_vec))
-        scope_list.append(len(sentences))
+        #if if_cuda:
+        #    label_list.append(torch.cuda.LongTensor(label_vec))
+        #else:
+        #    label_list.append(torch.LongTensor(label_vec))
+        for i in range(len(label_vec)):
+            feature_list.append([torch.LongTensor(list(map(lambda t: int(t), sent.split(',')))) for sent in sentences])
+            if if_cuda:
+                label_list.append(torch.cuda.LongTensor([label_vec[i]]))
+            else:
+                label_list.append(torch.LongTensor([label_vec[i]]))
+            scope_list.append(len(sentences))
         tmp = max(label_vec)
         if type_size < tmp:
             type_size = tmp

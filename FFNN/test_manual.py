@@ -42,7 +42,7 @@ word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLe
 _, type_size, _, _, _ = utils.load_corpus(train_file)
 
 nocluster = noCluster.noCluster(embLen, word_size, type_size, drop_prob, label_distribution, label_distribution_test)
-nocluster.load_state_dict(torch.load('./dumped_models/ffnn_dump_'+'_'.join(sys.argv[1:7])+'.pth'))
+nocluster.load_state_dict(torch.load('./dumped_models/%s/ffnn_dump_'%info+'_'.join(sys.argv[1:7])+'.pth'))
 
 torch.cuda.set_device(0)
 nocluster.cuda()
