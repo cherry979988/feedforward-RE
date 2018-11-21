@@ -70,12 +70,16 @@ class noCluster(nn.Module):
             for i in range(len(scope)-1):
                 #print(scope[i].data[0])
                 #print(scope[i+1].data[0])
-                emb = mem_embedding[scope[i]:scope[i+1]]
+                emb = mem_embedding[scope[i].data[0]:scope[i+1].data[0]]
                 scores = self.linear(F.dropout(emb, p=self.drop_prob, training=self.training))
-                att_weight = F.softmax(scores[:, type[i]])
-                bag_emb.append(torch.matmul(att_weight, emb)) # direction?
-                # print(torch.stack(bag_emb))
-            return self.linear(F.dropout(torch.stack(bag_emb), p=self.drop_prob, training=self.training))
+                #print(scores[:, type[i]])
+                att_weight = F.softmax(scores[:, type[i]], dim=0)
+                #print(att_weight)
+                #print(emb)
+                bag_emb.append(torch.matmul(att_weight.transpose(0,1), emb)) # direction?
+                #print(torch.cat(bag_emb, dim=0))
+
+            return self.linear(F.dropout(torch.cat(bag_emb, dim=0), p=self.drop_prob, training=self.training))
 
         #if not type == 'test':
         #    return self.linear(F.dropout(men_embedding, p=self.drop_prob, training=self.training)) + self.distribution_tensor
