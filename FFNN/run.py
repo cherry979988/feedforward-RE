@@ -13,11 +13,11 @@ import model.pack as pack
 
 zip = getattr(itertools, 'izip', zip)
 
-if len(sys.argv) != 8:
-    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -embLen(50) -randomseed(1234) -info')
+if len(sys.argv) != 9:
+    print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -embLen(50) -bagWeighting(none/att/ave) -randomseed(1234) -info')
     exit(1)
 
-SEED = int(sys.argv[6])
+SEED = int(sys.argv[7])
 print('Using Random Seed: '+str(SEED))
 torch.manual_seed(SEED)
 np.random.seed(SEED)
@@ -44,7 +44,8 @@ drop_prob = float(sys.argv[2])
 repack_ratio = float(sys.argv[3])
 bat_size = int(sys.argv[4])
 embLen = int(sys.argv[5])
-info = sys.argv[7]
+bagWeighting = sys.argv[6]
+info = sys.argv[8]
 
 word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 
@@ -54,7 +55,7 @@ doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.loa
 
 doc_size_dev, _, feature_list_dev, label_list_dev, type_list_dev = utils.load_corpus(dev_file)
 
-nocluster = noCluster.noCluster(embLen, word_size, type_size, drop_prob, label_distribution, label_distribution_test)
+nocluster = noCluster.noCluster(embLen, word_size, type_size, drop_prob, label_distribution, label_distribution_test, bagWeighting)
 print('embLen, word_size, type_size: ', embLen, word_size, type_size)
 
 nocluster.load_word_embedding(pos_embedding_tensor)

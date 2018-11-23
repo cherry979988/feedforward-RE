@@ -95,7 +95,7 @@ if __name__ == "__main__":
         requireEmType = True
     elif int(sys.argv[3]) == 0:
         outdir = 'data/intermediate/%s/rm' % sys.argv[1]
-        requireEmType = False
+        requireEmType = True
     else:
         print 'Usage:feature_generation.py -DATA -numOfProcesses -emtypeFlag(0 or 1)'
         exit(1)
