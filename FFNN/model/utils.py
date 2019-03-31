@@ -30,6 +30,18 @@ def get_distribution(type_filename):
         prob_lst = [(c+0.00001) / float(sum) for c in prob_lst]
         return prob_lst
 
+def get_distribution_from_list(labels, max_index=None):
+    labels = [labels[i][0] for i in range(len(labels))]
+    #print(labels)
+    if max_index is None:
+        max_index = max(labels) + 1
+    count = [0] * (max_index)
+    for i, item in enumerate(labels):
+        count[item] += 1
+    prob = [item / len(labels) for item in count]
+    return prob
+
+
 def to_scalar(var):
     return var.view(-1).data.tolist()[0]
 

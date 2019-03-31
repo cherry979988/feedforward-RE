@@ -24,8 +24,9 @@ np.random.seed(SEED)
 random.seed(SEED)
 
 dataset = sys.argv[1]
-train_file = './data/intermediate/' + dataset + '/rm/train_x_corpus.txt'
-train_label_file = './data/intermediate/' + dataset + '/rm/train_y_corpus.txt'
+#train_file = './data/intermediate/' + dataset + '/rm/train_x_corpus.txt'
+#train_label_file = './data/intermediate/' + dataset + '/rm/train_y_corpus.txt'
+train_file = './data/intermediate/' + dataset + '/rm/train.data'
 dev_file = './data/intermediate/' + dataset + '/rm/dev.data'
 test_file = './data/intermediate/' + dataset + '/rm/test.data'
 
@@ -49,7 +50,8 @@ info = sys.argv[8]
 
 word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLen)
 
-doc_size, type_size, feature_list, label_list, type_list = utils.load_corpus_new(train_file, train_label_file)
+#doc_size, type_size, feature_list, label_list, type_list = utils.load_corpus_new(train_file, train_label_file)
+doc_size, type_size, feature_list, label_list, type_list = utils.load_corpus(train_file)
 
 doc_size_test, _, feature_list_test, label_list_test, type_list_test = utils.load_corpus(test_file)
 
@@ -122,7 +124,7 @@ for epoch in range(200):
         best_meanBestF1 = meanBestF1
         if not os.path.exists('./dumped_models/%s' % info):
             os.mkdir('./dumped_models/%s' % info)
-        torch.save(nocluster.state_dict(), './dumped_models/%s/ffnn_dump_' % info +'_'.join(sys.argv[1:7])+'.pth')
+        torch.save(nocluster.state_dict(), './dumped_models/%s/ffnn_dump_' % info +'_'.join(sys.argv[1:8])+'.pth')
 
 print('Best result: ')
 print('F1 = %.4f, recall = %.4f, precision = %.4f, val f1 = %.4f)' %

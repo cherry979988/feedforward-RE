@@ -70,14 +70,16 @@ for input_dropout in input_dropout_list:
 
 best_input_dropout = get_best_input_dropout(dataset, best_output_dropout, default_bsize, embLen)
 
-# for bsize in bsize_list:
+#for bsize in bsize_list:
 #     cmd1 = 'CUDA_VISIBLE_DEVICES=%s python3 FFNN/run.py %s %s %s %s %d %d'\
 #         % (devices, dataset, best_output_dropout, best_input_dropout, bsize, embLen, tune_time_seed)
 #     print(cmd1)
 #     subprocess.call(cmd1,shell=True)    \
 
-# best_bsize = get_best_bsize(dataset, best_output_dropout, best_input_dropout)
+#best_bsize = get_best_bsize(dataset, best_output_dropout, best_input_dropout)
 best_bsize = 80
+#best_output_dropout = 0.3
+#best_input_dropout = 0.0
 
 print('====TUNING COMPLETED!====')
 print('Best Param: Input Dropout = %s, Output Dropout = %s, Batch Size = %s' % (str(best_output_dropout), str(best_input_dropout), str(best_bsize)))
@@ -88,7 +90,7 @@ for i in [1,2,3,4,5]:
     print(cmd1)
     subprocess.call(cmd1,shell=True)
     
-    cmd2 = 'CUDA_VISIBLE_DEVICES=%s python3 FFNN/test_manual.py %s %s %s %s %d %d %s'\
-        % (devices, dataset, best_output_dropout, best_input_dropout, best_bsize, embLen, i, info)
+    cmd2 = 'CUDA_VISIBLE_DEVICES=%s python3 FFNN/test_manual.py %s %s %s %s %d %s %d %s'\
+        % (devices, dataset, best_output_dropout, best_input_dropout, best_bsize, embLen, bagWeighting, i, info)
     print(cmd2)
     subprocess.call(cmd2,shell=True)

@@ -63,7 +63,14 @@ class noCluster(nn.Module):
         if type != 'train' or self.bag_weighting == 'none':
             men_embedding = self.word_emb_bag(feature_seq, offset_seq)
             self.men_embedding = men_embedding
-            return self.linear(F.dropout(men_embedding, p=self.drop_prob, training=self.training))
+            # return self.linear(F.dropout(men_embedding, p=self.drop_prob, training=self.training))
+            if type != 'test':
+                return self.linear(F.dropout(men_embedding, p=self.drop_prob, training=self.training)) + self.distribution_tensor
+            else:
+                #vectors = torch.autograd.Variable(self.linear.weight.data, requires_grad=False)
+                #v = torch.sum(torch.pow(vectors, exponent=2), 1)
+                return self.linear(F.dropout(men_embedding, p=self.drop_prob,
+                                             training=self.training)) + self.distribution_tensor_test
         else:
             mem_embedding = self.word_emb_bag(feature_seq, offset_seq)
             _, type = torch.max(self.typeTensor, 1)
@@ -81,7 +88,7 @@ class noCluster(nn.Module):
                 else:
                     bag_len = scope[i+1].data[0]-scope[i].data[0]
                     att_weight = autograd.Variable(torch.ones([bag_len, 1])/bag_len).cuda()
-                    print(att_weight)
+                    # print(att_weight)
                 bag_emb.append(torch.matmul(att_weight.transpose(0,1), emb)) # direction?
                 #print(torch.cat(bag_emb, dim=0))
 
@@ -107,6 +114,14 @@ class noCluster(nn.Module):
         # self.word_emb.weight.requires_grad = False
         # self.word_emb_bag.weight.requires_grad = False
 
+    def test_with_bias(self, feature_seq, offset_seq, bias):
+        bias = torch.log(torch.autograd.Variable(torch.cuda.FloatTensor(bias), requires_grad=False))
 
+        men_embedding = self.word_emb_bag(feature_seq, offset_seq)
+        #self.men_embedding = men_embedding
+        # return self.linear(F.dropout(men_embedding, p=self.drop_prob,
+        #                              training=self.training)) - self.distribution_tensor + bias
+        return self.linear(F.dropout(men_embedding, p=self.drop_prob,
+                                      training=self.training))  + bias
 
 

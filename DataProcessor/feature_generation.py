@@ -92,10 +92,10 @@ if __name__ == "__main__":
     indir = 'data/source/%s' % sys.argv[1]
     if int(sys.argv[3]) == 1:
         outdir = 'data/intermediate/%s_emtype/rm' % sys.argv[1]
-        requireEmType = True
+        requireEmType = False
     elif int(sys.argv[3]) == 0:
         outdir = 'data/intermediate/%s/rm' % sys.argv[1]
-        requireEmType = True
+        requireEmType = False
     else:
         print 'Usage:feature_generation.py -DATA -numOfProcesses -emtypeFlag(0 or 1)'
         exit(1)
@@ -107,10 +107,10 @@ if __name__ == "__main__":
 
     raw_train_json = indir + '/train_split.json'
     raw_test_json = indir + '/test.json'
-    train_json = outdir + '/train_new.json'
-    test_json = outdir + '/test_new.json'
+    train_json = outdir + '/train_new_with_ner.json'
+    test_json = outdir + '/test_new_with_ner.json'
     raw_dev_json = indir + '/dev.json'
-    dev_json = outdir + '/dev_new.json'
+    dev_json = outdir + '/dev_new_with_ner.json'
 
     ### Generate features using Python wrapper (disabled if using run_nlp.sh)
     #print 'Start nlp parsing'
