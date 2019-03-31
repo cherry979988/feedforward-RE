@@ -70,7 +70,7 @@ class noCluster(nn.Module):
                 #vectors = torch.autograd.Variable(self.linear.weight.data, requires_grad=False)
                 #v = torch.sum(torch.pow(vectors, exponent=2), 1)
                 return self.linear(F.dropout(men_embedding, p=self.drop_prob,
-                                             training=self.training)) + self.distribution_tensor_test
+                                             training=self.training)) # + self.distribution_tensor_test
         else:
             mem_embedding = self.word_emb_bag(feature_seq, offset_seq)
             _, type = torch.max(self.typeTensor, 1)

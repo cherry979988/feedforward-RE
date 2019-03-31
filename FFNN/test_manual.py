@@ -9,6 +9,7 @@ import sys
 import os
 
 if len(sys.argv) != 8:
+    print(sys.argv)
     print('Usage: run.py -DATA -outputDropout(0.2) -inputDropout(0) -batchSize(20) -embLen(50) -bagWeighting(none/ave/att) -randomseed(1234) -info')
     exit(1)
 
@@ -43,7 +44,7 @@ word_size, pos_embedding_tensor = utils.initialize_embedding(feature_file, embLe
 _, type_size, _, _, _ = utils.load_corpus(train_file)
 
 nocluster = noCluster.noCluster(embLen, word_size, type_size, drop_prob, label_distribution, label_distribution_test)
-nocluster.load_state_dict(torch.load('./dumped_models/KBP_bias_eq_log_distrib_orig_hyper/ffnn_dump_'+'_'.join(sys.argv[1:7])+'.pth'))
+nocluster.load_state_dict(torch.load('./dumped_models/ffnn_dump_'+'_'.join(sys.argv[1:7])+'.pth'))
 
 torch.cuda.set_device(0)
 nocluster.cuda()
@@ -146,3 +147,9 @@ print('F1 = %.4f, recall = %.4f, precision = %.4f, pn_precision = %.4f, accuracy
 print('NoneType precision: ', nprecision, ' recall: ', nrecall)
 
 # python3 FFNN/test_manual.py KBP 0.5 0.1 80 50 none 4 none
+
+n = len(label_distribution)
+weights = [label_distribution[i]/label_distribution_test[i] for i in range(n)]
+f1score, recall, precision = utils.evalWeightedF1(ind.data, entropy.data, test_label, none_ind, weights)
+print('Using Weighted Metrics:')
+print('F1 = %4f, recall = %.4f, precision = %.4f' % (f1score, recall, precision))

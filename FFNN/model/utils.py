@@ -473,6 +473,31 @@ def noCrossValidation(pre_ind_dev, pre_entropy_dev, true_ind_dev, pre_ind_test, 
         print('Warning: Predicted 0 NoneType')
     return f1score, recall, precision, val_f1, pn_precision, corrected/predicted, corrected/ofInterest, accurate/len(data)
 
+def evalWeightedF1(pre_ind_test, pre_entropy_test, true_ind_test, noneInd, weights):
+    print('\nusing weighted f1')
+    print('weights: %s' % weights)
+    print('')
+
+    data = [[pre_ind_test[ind], pre_entropy_test[ind], true_ind_test[ind]] for ind in range(0, len(pre_ind_test))]
+
+    ofInterest = 0
+    for ins in data:
+        if ins[2][0] != noneInd:
+            ofInterest += weights[ins[2][0]] # weight of true_ind
+    corrected = 0
+    predicted = 0
+    for ins in data:
+        if ins[0] != noneInd:
+            predicted += weights[ins[2][0]] # weight of true_ind
+            if ins[0] == ins[2][0]:
+                corrected += weights[ins[2][0]] # weight of true_ind
+    f1score = (2.0 * corrected / (ofInterest + predicted))
+    recall = (1.0 * corrected / ofInterest)
+    precision = (1.0 * corrected / (predicted + 1e-8))
+
+    return f1score, recall, precision
+
+
 def CrossValidation_New(pre_ind_ndev, pre_entropy_ndev, true_ind_ndev, pre_ind, pre_entropy, true_ind, noneInd, thres_type='max', ratio=0.1, cvnum=100):
     # > for 'max' and < for 'entropy'
     if thres_type == 'max':
